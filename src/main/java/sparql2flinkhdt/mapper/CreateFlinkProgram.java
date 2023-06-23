@@ -1,4 +1,4 @@
-package sparql2flink.mapper;
+package sparql2flinkhdt.mapper;
 
 import java.io.*;
 import java.nio.file.Files;

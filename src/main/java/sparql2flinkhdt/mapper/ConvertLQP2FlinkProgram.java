@@ -1,4 +1,4 @@
-package sparql2flink.mapper;
+package sparql2flinkhdt.mapper;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.SortCondition;

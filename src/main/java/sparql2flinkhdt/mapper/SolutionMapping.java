@@ -1,4 +1,4 @@
-package sparql2flink.mapper;
+package sparql2flinkhdt.mapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;

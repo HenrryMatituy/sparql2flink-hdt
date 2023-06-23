@@ -1,9 +1,9 @@
-package sparql2flink.runner.functions.order;
+package sparql2flinkhdt.runner.functions.order;
 
 import org.apache.flink.api.java.functions.KeySelector;
 import org.rdfhdt.hdt.dictionary.Dictionary;
-import sparql2flink.runner.functions.SolutionMappingHDT;
-import sparql2flink.runner.functions.TripleIDConvert;
+import sparql2flinkhdt.runner.functions.SolutionMappingHDT;
+import sparql2flinkhdt.runner.functions.TripleIDConvert;
 
 
 // SolutionMapping - Key Selector Order by
