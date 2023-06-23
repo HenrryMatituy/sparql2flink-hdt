@@ -1,18 +1,21 @@
 package sparql2flinkhdt.runner.functions;
 
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.rdfhdt.hdt.dictionary.Dictionary;
 
 //SolutionMapping to SolutionMapping - Filter Function
-public class Filter implements FilterFunction<SolutionMapping> {
+public class Filter implements FilterFunction<SolutionMappingHDT> {
 
+    private static Dictionary dictionary = null;
     private String expression = null;
 
-    public Filter(String expression){
+    public Filter(Dictionary dictionary, String expression){
+        this.dictionary = dictionary;
         this.expression = expression;
     }
 
     @Override
-    public boolean filter(SolutionMapping sm) {
-        return sm.filter(expression);
+    public boolean filter(SolutionMappingHDT sm) {
+        return sm.filter(dictionary, expression);
     }
 }

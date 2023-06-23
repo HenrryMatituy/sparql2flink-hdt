@@ -1,51 +1,46 @@
 package sparql2flinkhdt.runner.functions;
 
 import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
+import org.rdfhdt.hdt.dictionary.Dictionary;
+import org.rdfhdt.hdt.triples.TripleID;
 
 //Triple to Triple - Filter Function
-public class Triple2Triple implements FilterFunction<Triple> {
+public class Triple2Triple implements FilterFunction<TripleID> {
 
-    String subject, predicate, object = null;
+    private static Dictionary dictionary = null;
+    private String subject, predicate, object = null;
 
-    public Triple2Triple(String s, String p, String o){
+    public Triple2Triple(Dictionary d, String s, String p, String o){
+        this.dictionary = d;
         this.subject = s;
         this.predicate = p;
         this.object = o;
     }
 
-    public boolean evalObject(Node node){
-        Boolean flag = false;
-        if(node.isLiteral()) {
-            if (node.getLiteralValue().toString().equals(object)){
-                flag = true;
-            }
-        } else if (node.isURI()) {
-            if (node.getURI().toString().equals(object)) {
-                flag = true;
-            }
-        }
-        return flag;
-    }
-
     @Override
-    public boolean filter(Triple t) {
-        //System.out.println(subject + " -- " + predicate + " -- " + object);
-        //System.out.print("Triple t :"+t.toString()+"\t\t");
+    public boolean filter(TripleID t) {
+        Integer s, p, o = null;
         if(subject==null && predicate!=null && object!=null) {
-            return (t.getPredicate().toString().equals(predicate) && evalObject(t.getObject()));
+            p = TripleIDConvert.stringToIDPredicate(dictionary, predicate);
+            o = TripleIDConvert.stringToIDObject(dictionary, object);
+            return (t.getPredicate() == p && t.getObject() == o);
         } else if(subject!=null && predicate==null && object!=null) {
-            return (t.getSubject().toString().equals(subject) && evalObject(t.getObject()));
+            s = TripleIDConvert.stringToIDSubject(dictionary, subject);
+            o = TripleIDConvert.stringToIDObject(dictionary, object);
+            return (t.getSubject() == s && t.getObject() == o);
         } else if(subject!=null && predicate!=null && object==null) {
-            return (t.getSubject().toString().equals(subject) && t.getPredicate().toString().equals(predicate));
+            s = TripleIDConvert.stringToIDSubject(dictionary, subject);
+            p = TripleIDConvert.stringToIDPredicate(dictionary, predicate);
+            return (t.getSubject() == s && t.getPredicate() == p);
         } else if(subject!=null && predicate==null && object==null) {
-            return (t.getSubject().toString().equals(subject));
+            s = TripleIDConvert.stringToIDSubject(dictionary, subject);
+            return t.getSubject() == s;
         } else if(subject==null && predicate!=null && object==null) {
-            //System.out.println("(t.getPredicate().toString().equals(predicate)): "+t.getPredicate().toString() +" == "+ predicate);
-            return (t.getPredicate().toString().equals(predicate));
+            p = TripleIDConvert.stringToIDPredicate(dictionary, predicate);
+            return t.getPredicate() == p;
         } else if(subject==null && predicate==null && object!=null) {
-            return evalObject(t.getObject());
+            o = TripleIDConvert.stringToIDObject(dictionary, object);
+            return t.getObject() == o;
         } else {
             return true;
         }

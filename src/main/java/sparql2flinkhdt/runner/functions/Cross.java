@@ -3,10 +3,10 @@ package sparql2flinkhdt.runner.functions;
 import org.apache.flink.api.common.functions.CrossFunction;
 
 //SolutionMapping - Cross Function
-public class Cross implements CrossFunction<SolutionMapping, SolutionMapping, SolutionMapping> {
+public class Cross implements CrossFunction<SolutionMappingHDT, SolutionMappingHDT, SolutionMappingHDT> {
 
     @Override
-    public SolutionMapping cross(SolutionMapping left, SolutionMapping right) {
+    public SolutionMappingHDT cross(SolutionMappingHDT left, SolutionMappingHDT right) {
         return left.join(right);
     }
 }

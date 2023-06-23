@@ -6,7 +6,7 @@ import org.apache.jena.graph.Node;
 import java.util.Map;
 
 //SolutionMapping to SolutionMapping - Map Function
-public class SolutionMapping2Node implements MapFunction<SolutionMapping, Node> {
+public class SolutionMapping2Node implements MapFunction<SolutionMappingHDT, Integer> {
 
     private String label = null;
 
@@ -15,9 +15,9 @@ public class SolutionMapping2Node implements MapFunction<SolutionMapping, Node> 
     }
 
     @Override
-    public Node map(SolutionMapping sm){
-        System.out.println("Node: "+ sm.getMapping().get(label));
-        return sm.getMapping().get(label);
+    public Integer map(SolutionMappingHDT sm){
+        //System.out.println("Node: "+ sm.getMapping().get(label));
+        return sm.getMapping().get(label)[0];
     }
 }
 

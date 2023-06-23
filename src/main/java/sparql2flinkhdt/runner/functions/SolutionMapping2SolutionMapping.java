@@ -3,7 +3,7 @@ package sparql2flinkhdt.runner.functions;
 import org.apache.flink.api.common.functions.MapFunction;
 
 //SolutionMapping to SolutionMapping - Map Function
-public class SolutionMapping2SolutionMapping implements MapFunction<SolutionMapping, SolutionMapping> {
+public class SolutionMapping2SolutionMapping implements MapFunction<SolutionMappingHDT, SolutionMappingHDT> {
 
     private String[] vars = null;
 
@@ -12,7 +12,7 @@ public class SolutionMapping2SolutionMapping implements MapFunction<SolutionMapp
     }
 
     @Override
-    public SolutionMapping map(SolutionMapping sm){
+    public SolutionMappingHDT map(SolutionMappingHDT sm){
         return sm.newSolutionMapping(vars);
     }
 }

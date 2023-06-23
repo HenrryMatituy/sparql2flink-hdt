@@ -2,12 +2,11 @@ package sparql2flinkhdt.runner.functions;
 
 import org.apache.flink.api.java.functions.KeySelector;
 
-// SolutionMapping - Key Selector Join
-public class JoinKeySelector implements KeySelector<SolutionMappingHDT, String> {
+public class CoGroupKeySelector implements KeySelector<SolutionMappingHDT, String> {
 
-    private String[] keys;
+    private String[] keys = null;
 
-    public JoinKeySelector(String[] keys){
+    public CoGroupKeySelector(String[] keys){
         this.keys = keys;
     }
 
@@ -21,6 +20,7 @@ public class JoinKeySelector implements KeySelector<SolutionMappingHDT, String> 
                 value += ",";
             }
         }
-		return value;
+        return value;
     }
+
 }

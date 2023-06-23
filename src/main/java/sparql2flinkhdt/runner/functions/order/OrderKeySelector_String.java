@@ -1,24 +1,31 @@
-package sparql2flinkhdt.runner.functions.order;
+package sparql2flink.runner.functions.order;
 
 import org.apache.flink.api.java.functions.KeySelector;
-import sparql2flinkhdt.runner.functions.SolutionMapping;
+import org.apache.jena.graph.Node;
+import org.rdfhdt.hdt.dictionary.Dictionary;
+import sparql2flink.runner.functions.SolutionMappingHDT;
+import sparql2flink.runner.functions.SolutionMappingURI;
+import sparql2flink.runner.functions.TripleIDConvert;
 
 // SolutionMapping - Key Selector Order by
-public class OrderKeySelector_String implements KeySelector<SolutionMapping, String> {
+public class OrderKeySelector_String implements KeySelector<SolutionMappingHDT, String> {
 
+    static Dictionary dictionary;
 	private String key;
 
-	public OrderKeySelector_String(String k) {
+	public OrderKeySelector_String(Dictionary dictionary, String k) {
+        this.dictionary = dictionary;
 		this.key = k;
 	}
 
 	@Override
-	public String getKey(SolutionMapping sm) {
+	public String getKey(SolutionMappingHDT sm) {
 	    String value = "";
-		if(sm.getMapping().get(key).isLiteral()) {
-            value = sm.getMapping().get(key).getLiteralValue().toString();
-        }else if(sm.getMapping().get(key).isURI()){
-            value = sm.getMapping().get(key).toString();
+	    Node node = TripleIDConvert.idToStringFilter(dictionary, sm.getMapping().get(key));
+		if(node.isLiteral()) {
+            value = node.getLiteralValue().toString();
+        }else if(node.isURI()){
+            value = node.toString();
         }
         return value;
 	}

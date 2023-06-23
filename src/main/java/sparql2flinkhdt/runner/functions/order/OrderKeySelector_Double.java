@@ -1,20 +1,24 @@
-package sparql2flinkhdt.runner.functions.order;
+package sparql2flink.runner.functions.order;
 
 import org.apache.flink.api.java.functions.KeySelector;
-import sparql2flinkhdt.runner.functions.SolutionMapping;
+import org.rdfhdt.hdt.dictionary.Dictionary;
+import sparql2flink.runner.functions.SolutionMappingHDT;
+import sparql2flink.runner.functions.TripleIDConvert;
 
 // SolutionMapping - Key Selector Order by
-public class OrderKeySelector_Double implements KeySelector<SolutionMapping, Double> {
+public class OrderKeySelector_Double implements KeySelector<SolutionMappingHDT, Double> {
 
+	static Dictionary dictionary;
 	private String key;
 
-	public OrderKeySelector_Double(String k) {
+	public OrderKeySelector_Double(Dictionary dictionary, String k) {
+		this.dictionary = dictionary;
 		this.key = k;
 	}
 
 	@Override
-	public Double getKey(SolutionMapping sm) {
-		return Double.parseDouble(sm.getMapping().get(key).getLiteralValue().toString());
+	public Double getKey(SolutionMappingHDT sm) {
+		return Double.parseDouble(TripleIDConvert.idToStringFilter(dictionary, sm.getMapping().get(key)).getLiteralValue().toString());
 	}
 
 }

@@ -4,13 +4,14 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.util.Collector;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.rdfhdt.hdt.triples.TripleID;
 
 //Triple to SolutionMapping - Map Function
-public class Triple2SolutionMapping2 implements FlatMapFunction<Triple, SolutionMapping> {
+public class Triple2SolutionMapping2 implements FlatMapFunction<TripleID, SolutionMappingHDT> {
 
-    private String subject, predicate, object = null;
+    private Integer subject, predicate, object = null;
 
-    public Triple2SolutionMapping2(String s, String p, String o){
+    public Triple2SolutionMapping2(Integer s, Integer p, Integer o){
         this.subject = s;
         this.predicate = p;
         this.object = o;
@@ -31,9 +32,9 @@ public class Triple2SolutionMapping2 implements FlatMapFunction<Triple, Solution
     }
 
     @Override
-    public void flatMap(Triple t, Collector<SolutionMapping> out){
-        if(subject.contains("?") && !predicate.contains("?") && !object.contains("?")) {
-            if(t.getPredicate().toString().equals(predicate) && evalObject(t.getObject())) {
+    public void flatMap(TripleID t, Collector<SolutionMappingHDT> out){
+        /*if(subject.contains("?") && !predicate.contains("?") && !object.contains("?")) {
+            if(t.getPredicate() == predicate) && evalObject(t.getObject())) {
                 SolutionMapping sm = new SolutionMapping();
                 sm.putMapping(subject, t.getSubject());
                 out.collect(sm);
@@ -77,6 +78,6 @@ public class Triple2SolutionMapping2 implements FlatMapFunction<Triple, Solution
             sm.putMapping(predicate, t.getPredicate());
             sm.putMapping(object, t.getObject());
             out.collect(sm);
-        }
+        }*/
     }
 }

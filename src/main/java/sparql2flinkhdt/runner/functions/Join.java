@@ -4,10 +4,10 @@ import org.apache.flink.api.common.functions.FlatJoinFunction;
 import org.apache.flink.util.Collector;
 
 //SolutionMapping - Flat Join Function
-public class Join implements FlatJoinFunction<SolutionMapping, SolutionMapping, SolutionMapping> {
+public class Join implements FlatJoinFunction<SolutionMappingHDT, SolutionMappingHDT, SolutionMappingHDT> {
 
     @Override
-    public void join(SolutionMapping left, SolutionMapping right, Collector<SolutionMapping> out) throws Exception {
+    public void join(SolutionMappingHDT left, SolutionMappingHDT right, Collector<SolutionMappingHDT> out) throws Exception {
         out.collect(left.join(right));
     }
 }
