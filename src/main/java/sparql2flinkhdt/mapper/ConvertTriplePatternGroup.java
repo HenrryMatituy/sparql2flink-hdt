@@ -14,13 +14,13 @@ public class ConvertTriplePatternGroup {
         ArrayList<String> listKeys = SolutionMapping.getKey(indice_sm_left, indice_sm_right);
         if(listKeys.size()>0) {
             String keys = JoinKeys.keys(listKeys);
-            sm = "\t\tDataSet<SolutionMapping> sm" + indice_sm_join + " = sm" + indice_sm_left + ".join(sm" + indice_sm_right + ")\n" +
+            sm = "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_join + " = sm" + indice_sm_left + ".join(sm" + indice_sm_right + ")\n" +
                     "\t\t\t.where(new JoinKeySelector(new String[]{"+keys+"}))\n" +
                     "\t\t\t.equalTo(new JoinKeySelector(new String[]{"+keys+"}))\n" +
                     "\t\t\t.with(new Join());" +
                     "\n\n";
         } else {
-            sm = "\t\tDataSet<SolutionMapping> sm" + indice_sm_join + " = sm" + indice_sm_left + ".cross(sm" + indice_sm_right + ")\n" +
+            sm = "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_join + " = sm" + indice_sm_left + ".cross(sm" + indice_sm_right + ")\n" +
                     "\t\t\t.with(new Cross());" +
                     "\n\n";
         }
@@ -36,7 +36,7 @@ public class ConvertTriplePatternGroup {
                 bgp += joinSolutionMapping(indiceSM,indiceSM-2, indiceSM-1);
                 count = 1;
             } else {
-                bgp += "\t\tDataSet<SolutionMapping> sm" + indiceSM + " = dataset\n" +
+                bgp += "\t\tDataSet<SolutionMappingHDT> sm" + indiceSM + " = dataset\n" +
                     ConvertTriplePattern.convert(listTriplePatterns.get(indiceLTP), indiceSM);
                 indiceLTP += 1;
                 count += 1;

@@ -43,14 +43,14 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         if(listKeys.size()>0) {
             String keys = JoinKeys.keys(listKeys);
-            flinkProgram += "\t\tDataSet<SolutionMapping> sm" + indice_sm_join + " = sm" + indice_sm_left + ".join(sm" + indice_sm_right + ")\n" +
+            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_join + " = sm" + indice_sm_left + ".join(sm" + indice_sm_right + ")\n" +
                     "\t\t\t.where(new JoinKeySelector(new String[]{"+keys+"}))\n" +
                     "\t\t\t.equalTo(new JoinKeySelector(new String[]{"+keys+"}))\n" +
                     "\t\t\t.with(new Join());" +
                     "\n\n";
         }
         else {
-            flinkProgram += "\t\tDataSet<SolutionMapping> sm" + indice_sm_join + " = sm" + indice_sm_left + ".cross(sm" + indice_sm_right + ")\n" +
+            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_join + " = sm" + indice_sm_left + ".cross(sm" + indice_sm_right + ")\n" +
                     "\t\t\t.with(new Cross());" +
                     "\n\n";
             }
@@ -75,14 +75,14 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         if(listKeys.size()>0) {
             String keys = JoinKeys.keys(listKeys);
-            flinkProgram += "\t\tDataSet<SolutionMapping> sm" + indice_sm_join + " = sm" + indice_sm_left + ".leftOuterJoin(sm" + indice_sm_right + ")\n" +
+            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_join + " = sm" + indice_sm_left + ".leftOuterJoin(sm" + indice_sm_right + ")\n" +
                     "\t\t\t.where(new JoinKeySelector(new String[]{"+keys+"}))\n" +
                     "\t\t\t.equalTo(new JoinKeySelector(new String[]{"+keys+"}))\n" +
                     "\t\t\t.with(new LeftJoin());" +
                     "\n\n";
         }
         else {
-            flinkProgram += "\t\tDataSet<SolutionMapping> sm"+indice_sm_join+" = sm"+indice_sm_left+".cross(sm"+indice_sm_right+")\n" +
+            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+indice_sm_join+" = sm"+indice_sm_left+".cross(sm"+indice_sm_right+")\n" +
                     "\t\t\t.with(new Cross());" +
                     "\n\n";
         }
@@ -101,16 +101,23 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         opLeft.visit(this);
         int indice_sm_left = SolutionMapping.getIndice()-1;
+        ArrayList<String> listKeysLeft = SolutionMapping.getKey(indice_sm_left);
+        String keysLeft = JoinKeys.keys(listKeysLeft);
 
         opRight.visit(this);
         int indice_sm_right = SolutionMapping.getIndice()-1;
+        ArrayList<String> listKeysRight = SolutionMapping.getKey(indice_sm_right);
+        String keysRight = JoinKeys.keys(listKeysRight);
 
-        int indice_sm_join = SolutionMapping.getIndice();
+        int indice_sm_union = SolutionMapping.getIndice();
 
-        flinkProgram += "\t\tDataSet<SolutionMapping> sm"+indice_sm_join+" = sm"+indice_sm_left+".union(sm"+indice_sm_right+");" +
+        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_union + " = sm" + indice_sm_left + ".coGroup(sm" + indice_sm_right + ")\n" +
+                "\t\t\t.where(new CoGroupKeySelector(new String[]{"+keysLeft+"}))\n" +
+                "\t\t\t.equalTo(new CoGroupKeySelector(new String[]{"+keysRight+"}))\n" +
+                "\t\t\t.with(new Union());" +
                 "\n\n";
 
-        SolutionMapping.join(indice_sm_join, indice_sm_left, indice_sm_right);
+        SolutionMapping.join(indice_sm_union, indice_sm_left, indice_sm_right);
     }
 
     @Override
@@ -130,7 +137,7 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         opProject.getSubOp().visit(this);
 
-        flinkProgram += "\t\tDataSet<SolutionMapping> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
+        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
                 "\t\t\t.map(new Project(new String[]{"+varsProject+"}));\n\n";
 
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
@@ -141,8 +148,8 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         ExprList exprList = opFilter.getExprs();
         opFilter.getSubOp().visit(this);
         for ( Expr expression : exprList ) {
-            flinkProgram += "\t\tDataSet<SolutionMapping> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                    "\t\t\t.filter(new Filter(\""+FilterConvert.convert(expression)+"\"));\n\n";
+            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
+                    "\t\t\t.filter(new Filter(hdt.getDictionary(), \""+FilterConvert.convert(expression)+"\"));\n\n";
 
             ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
 
@@ -152,8 +159,8 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
     public void visit(ExprList exprList) {
         for ( Expr expression : exprList ) {
-            flinkProgram += "\t\tDataSet<SolutionMapping> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                    "\t\t\t.filter(new Filter(\""+FilterConvert.convert(expression)+"\"));\n\n";
+            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
+                    "\t\t\t.filter(new Filter(hdt.getDictionary(), \""+FilterConvert.convert(expression)+"\"));\n\n";
 
             ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
 
@@ -165,10 +172,20 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
     public void visit(OpDistinct opDistinct) {
         opDistinct.getSubOp().visit(this);
 
-        flinkProgram += "\t\tDataSet<SolutionMapping> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t.distinct(new DistinctKeySelector());\n\n";
-
         ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
+
+        String varsDistinct = "";
+        Iterator<String> iter = variables.iterator();
+        for (; iter.hasNext(); ) {
+            String var = iter.next();
+            varsDistinct += var;
+            if(iter.hasNext()){
+                varsDistinct += ", ";
+            }
+        }
+
+        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
+                "\t\t\t.distinct(new DistinctKeySelector(new String[]{"+varsDistinct+"}));\n\n";
 
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
@@ -188,40 +205,40 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         Expr expression = sortCondition.get(0).getExpression();
 
-        flinkProgram += "\t\tDataSet<SolutionMapping> sm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector(\""+expression+"\"), "+order+")\n" +
+        /*flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
+                "\t\t\t\t\t.sortPartition(new OrderKeySelector(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
                 "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\n";
+                "\t\n";*/
 
-        /*flinkProgram += "\t\tDataSet<SolutionMapping> sm"+SolutionMapping.getIndice()+";\n" +
-                "\t\tNode node = sm"+(SolutionMapping.getIndice()-1)+".collect().get(0).getValue(\""+expression+"\");\n" +
+        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+SolutionMapping.getIndice()+";\n" +
+                "\t\tNode node = TripleIDConvert.idToStringFilter(hdt.getDictionary(), sm"+(SolutionMapping.getIndice()-1)+".collect().get(0).getValue(\""+expression+"\"));\n" +
                 "\t\tif(node.isLiteral()) {\n" +
                 "\t\t\tif(node.getLiteralValue().getClass().equals(BigDecimal.class) || node.getLiteralValue().getClass().equals(Double.class)){\n" +
                 "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Double(\""+expression+"\"), "+order+")\n" +
+                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Double(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
                 "\t\t\t\t\t.setParallelism(1);\n" +
                 "\t\t\t} else if (node.getLiteralValue().getClass().equals(BigInteger.class) || node.getLiteralValue().getClass().equals(Integer.class)) {\n" +
                 "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Integer(\""+expression+"\"), "+order+")\n" +
+                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Integer(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
                 "\t\t\t\t\t.setParallelism(1);\n" +
                 "\t\t\t} else if (node.getLiteralValue().getClass().equals(Float.class)) {\n" +
                 "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Float(\""+expression+"\"), "+order+")\n" +
+                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Float(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
                 "\t\t\t\t\t.setParallelism(1);\n" +
                 "\t\t\t} else if (node.getLiteralValue().getClass().equals(Long.class)){\n" +
                 "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Long(\""+expression+"\"), "+order+")\n" +
+                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Long(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
                 "\t\t\t\t\t.setParallelism(1);\n" +
                 "\t\t\t} else {\n" +
                 "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_String(\""+expression+"\"), "+order+")\n" +
+                "\t\t\t\t\t.sortPartition(new OrderKeySelector_String(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
                 "\t\t\t\t\t.setParallelism(1);\n" +
                 "\t\t\t}\n" +
                 "\t\t} else {\n" +
                 "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_String(\""+expression+"\"), "+order+")\n" +
+                "\t\t\t\t\t.sortPartition(new OrderKeySelector_String(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
                 "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\t}\n\n";*/
+                "\t\t}\n\n";
 
         ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
 
@@ -233,7 +250,7 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
     public void visit(OpSlice opSlice) {
         opSlice.getSubOp().visit(this);
 
-        flinkProgram += "\t\tDataSet<SolutionMapping> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
+        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
                 "\t\t\t.first("+opSlice.getLength()+");\n\n";
 
         ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);

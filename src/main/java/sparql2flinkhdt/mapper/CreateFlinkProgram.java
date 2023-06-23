@@ -24,13 +24,11 @@ public class CreateFlinkProgram {
 
     public void createFlinkProgram() {
         byte data[] = this.flinkProgram.getBytes();
-
-        //Para correr en el IDE ide ide
-        Path path = Paths.get("./src/main/java/sparql2flink/out/" + this.fileName + ".java");
+        //Para correr en el IDE
+        Path path = Paths.get("./src/main/java/sparql2flinkhdt/out/" + this.fileName + ".java");
 
         //Para Docker
-//        Path path = Paths.get("../../sparql2flink/src/main/java/sparql2flink/out/" + this.fileName + ".java");
-
+//        Path path = Paths.get("../../sparql2flink/src/main/java/sparql2flinkhdt/out/" + this.fileName + ".java");
         try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path, CREATE, TRUNCATE_EXISTING))) {
             out.write(data, 0, data.length);
             System.out.println("Java Program File << "+fileName+".java >> created successfully...");

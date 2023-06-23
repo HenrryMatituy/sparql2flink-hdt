@@ -21,6 +21,14 @@ public class SolutionMapping {
         return listKeys;
     }
 
+    public static ArrayList<String> getKey(int indice_sm){
+        ArrayList<String> listKeys = new ArrayList<>();
+        for (String key : solutionMapping.get(indice_sm)) {
+            listKeys.add(key);
+        }
+        return listKeys;
+    }
+
     public static void join(int indice_sm, int indice_sm_left, int indice_sm_right){
         ArrayList<String> variables = new ArrayList<>();
 
