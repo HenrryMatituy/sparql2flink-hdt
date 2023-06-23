@@ -1,4 +1,4 @@
-package sparql2flinkhdt.mapper;
+package sparql2flink.mapper;
 
 import java.io.BufferedReader;
 import java.io.File;

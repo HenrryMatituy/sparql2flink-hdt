@@ -1,4 +1,4 @@
-package sparql2flinkhdt.mapper;
+package sparql2flink.mapper;
 
 import org.apache.jena.sparql.algebra.Op;
 import java.nio.file.Path;
@@ -19,7 +19,7 @@ public class LogicalQueryPlan2FlinkProgram {
     public String logicalQueryPlan2FlinkProgram() {
         String flinkProgram = "";
 
-        flinkProgram += "package sparql2flinkhdt.out;\n\n" +
+        flinkProgram += "package sparql2flink.out;\n\n" +
                 "import org.apache.flink.api.java.DataSet;\n" +
                 "import org.apache.flink.api.common.operators.Order;\n" +
                 "import org.apache.flink.api.java.ExecutionEnvironment;\n" +
@@ -27,9 +27,9 @@ public class LogicalQueryPlan2FlinkProgram {
                 "import org.apache.flink.core.fs.FileSystem;\n" +
                 "import org.apache.jena.graph.Node;\n" +
                 "import org.apache.jena.graph.Triple;\n" +
-                "import sparql2flinkhdt.runner.functions.*;\n" +
-                "import sparql2flinkhdt.runner.LoadTriples;\n" +
-                "import sparql2flinkhdt.runner.functions.order.*;\n" +
+                "import sparql2flink.runner.functions.*;\n" +
+                "import sparql2flink.runner.LoadTriples;\n" +
+                "import sparql2flink.runner.functions.order.*;\n" +
                 "import java.math.*;\n" +
                 "\npublic class "+className+" {\n" +
                 "\tpublic static void main(String[] args) throws Exception {\n\n" +

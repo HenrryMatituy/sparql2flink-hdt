@@ -1,4 +1,4 @@
-package sparql2flinkhdt.mapper;
+package sparql2flink.mapper;
 
 import org.apache.jena.query.*;
 import org.apache.jena.sparql.algebra.AlgebraGenerator;
