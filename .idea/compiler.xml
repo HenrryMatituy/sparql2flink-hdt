@@ -9,5 +9,8 @@
         <module name="sparql2flink-hdt" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="sparql2flink" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
