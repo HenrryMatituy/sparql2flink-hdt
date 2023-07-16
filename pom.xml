@@ -20,8 +20,8 @@ under the License.
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>sparql2flinkhdt</groupId>
-	<artifactId>sparql2flink-hdt</artifactId>
+	<groupId>sparql2flink</groupId>
+	<artifactId>sparql2flink</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -46,7 +46,7 @@ under the License.
 		<maven.compiler.source>${target.java.version}</maven.compiler.source>
 		<maven.compiler.target>${target.java.version}</maven.compiler.target>
 		<log4j.version>2.17.1</log4j.version>
-		<jena.version>3.6.0</jena.version> <!--	Se actualizó de version 3.6.0 a 3.9.0-->
+		<jena.version>3.6.0</jena.version> <!--	Se actualizó de version 3.6.0 a 3.9.0 pero se volvió a la 3.6.0-->
 	</properties>
 
 	<repositories>
@@ -80,6 +80,16 @@ under the License.
 		<!--            <scope>provided</scope>-->
 		<!--        </dependency>-->
 
+		<!-- https://mvnrepository.com/artifact/org.apache.flink/flink-streaming-scala -->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-streaming-scala_2.12</artifactId>
+			<version>${flink.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+
+
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-java</artifactId>
@@ -105,7 +115,7 @@ under the License.
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-core</artifactId>
-			<version>1.12.130</version>
+			<version>1.12.130</version>   <!--Se actualizó de la versión 1.11.449 a la 1.12.130-->
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/xerces/xercesImpl -->
@@ -178,10 +188,10 @@ under the License.
 						<configuration>
 							<artifactSet>
 								<excludes>
-									<exclude>org.apache.flink:flink-shaded-force-shading</exclude>
+									<!--<exclude>org.apache.flink:flink-shaded-force-shading</exclude>
 									<exclude>com.google.code.findbugs:jsr305</exclude>
 									<exclude>org.slf4j:*</exclude>
-									<exclude>org.apache.logging.log4j:*</exclude>
+									<exclude>org.apache.logging.log4j:*</exclude>-->
 								</excludes>
 							</artifactSet>
 							<filters>
@@ -199,7 +209,7 @@ under the License.
 							<transformers>
 								<transformer
 										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>sparql2flinkhdt.SPARQL2FlinkHDT</mainClass>
+									<mainClass>sparql2flink.SPARQL2Flink</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
