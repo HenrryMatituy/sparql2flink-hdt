@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="sparql2flink-hdt" />
+        <module name="sparql2flink" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="sparql2flink" target="1.8" />
+      <module name="sparql2flink-hdt" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
