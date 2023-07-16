@@ -2,4 +2,5 @@
 **/target/
 **/out/
 *.log
-*/examples/Query-Flink-Result
+/examples/Query-Flink-Result
+*.class
