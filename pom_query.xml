@@ -53,6 +53,7 @@ under the License.
         </repository>
     </repositories>
 
+
     <dependencies>
 
         <dependency>
@@ -89,6 +90,12 @@ under the License.
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-core</artifactId>
             <version>1.12.130</version>           <!--Se actualizó de la versión 1.11.449 a la 1.12.130-->
+        </dependency>
+        <!-- HDT Java Core -->
+        <dependency>
+            <groupId>org.rdfhdt</groupId>
+            <artifactId>hdt-java-core</artifactId>
+            <version>1.1</version>
         </dependency>
 
 
