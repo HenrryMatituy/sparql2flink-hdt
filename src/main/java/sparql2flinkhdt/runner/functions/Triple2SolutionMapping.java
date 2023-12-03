@@ -22,24 +22,24 @@ public class Triple2SolutionMapping implements MapFunction<TripleID, SolutionMap
     public SolutionMappingHDT map(TripleID t){
         SolutionMappingHDT sm = new SolutionMappingHDT();
         if(var_s!=null && var_p==null && var_o==null) {
-            sm.putMapping(var_s, new Integer[]{Math.toIntExact(t.getSubject()), 1});
+            sm.putMapping(var_s, new Integer[]{t.getSubject(), 1});
         } else if(var_s!=null && var_p!=null && var_o==null) {
-            sm.putMapping(var_s, new Integer[]{Math.toIntExact(t.getSubject()), 1});
-            sm.putMapping(var_p, new Integer[]{Math.toIntExact(t.getPredicate()), 2});
+            sm.putMapping(var_s, new Integer[]{t.getSubject(), 1});
+            sm.putMapping(var_p, new Integer[]{t.getPredicate(), 2});
         } else if(var_s!=null && var_p==null && var_o!=null) {
-            sm.putMapping(var_s, new Integer[]{Math.toIntExact(t.getSubject()), 1});
-            sm.putMapping(var_o, new Integer[]{Math.toIntExact(t.getObject()), 3});
+            sm.putMapping(var_s, new Integer[]{t.getSubject(), 1});
+            sm.putMapping(var_o, new Integer[]{t.getObject(), 3});
         } else if(var_s==null && var_p!=null && var_o==null) {
-            sm.putMapping(var_p, new Integer[]{Math.toIntExact(t.getPredicate()), 2});
+            sm.putMapping(var_p, new Integer[]{t.getPredicate(), 2});
         } else if(var_s==null && var_p!=null && var_o!=null) {
-            sm.putMapping(var_p, new Integer[]{Math.toIntExact(t.getPredicate()), 2});
-            sm.putMapping(var_o, new Integer[]{Math.toIntExact(t.getObject()), 3});
+            sm.putMapping(var_p, new Integer[]{t.getPredicate(), 2});
+            sm.putMapping(var_o, new Integer[]{t.getObject(), 3});
         } else if(var_s==null && var_p==null && var_o!=null) {
-            sm.putMapping(var_o, new Integer[]{Math.toIntExact(t.getObject()), 3});
+            sm.putMapping(var_o, new Integer[]{t.getObject(), 3});
         } else {
-            sm.putMapping(var_s, new Integer[]{Math.toIntExact(t.getSubject()), 1});
-            sm.putMapping(var_p, new Integer[]{Math.toIntExact(t.getPredicate()), 2});
-            sm.putMapping(var_o, new Integer[]{Math.toIntExact(t.getObject()), 3});
+            sm.putMapping(var_s, new Integer[]{t.getSubject(), 1});
+            sm.putMapping(var_p, new Integer[]{t.getPredicate(), 2});
+            sm.putMapping(var_o, new Integer[]{t.getObject(), 3});
         }
         return sm;
     }

@@ -29,17 +29,17 @@ public class Equals{
 			value_right = TripleIDConvert.idToStringFilter(dictionary, sm.get(arg2.toString()));
 		}
 
-        if(value_left.isLiteral()) {
-            if (value_left.getLiteralValue().toString().equals(value_right.getLiteralValue().toString())) {
-                //System.out.println("--- they are Equals ---");
-                flag = true;
-            }
-        } else if(value_left.isURI()) {
-            if (!(value_left.toString().equals(value_right.toString()))) {
-                //System.out.println("--- they are Equals ---");
-                flag = true;
-            }
-        }
-        return flag;
+		if(value_left.isLiteral()) {
+			if (value_left.getLiteralValue().toString().equals(value_right.getLiteralValue().toString())) {
+				//System.out.println("--- they are Equals ---");
+				flag = true;
+			}
+		} else if(value_left.isURI()) {
+			if (!(value_left.toString().equals(value_right.toString()))) {
+				//System.out.println("--- they are Equals ---");
+				flag = true;
+			}
+		}
+		return flag;
 	}
 }
