@@ -5,6 +5,8 @@ import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem;
+import org.apache.flink.shaded.netty4.io.netty.util.internal.ObjectUtil;
+import org.apache.flink.streaming.api.transformations.SideOutputTransformation;
 import org.apache.jena.graph.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +39,11 @@ public class Query {
 
 		ArrayList<TripleID> listTripleID = new ArrayList<>();
 		IteratorTripleID iterator = hdt.getTriples().searchAll();
+		System.out.println("Prueba iterador");
 		while(iterator.hasNext()) {
 			TripleID tripleID = new TripleID(iterator.next());
 			listTripleID.add(tripleID);
+			System.out.printf(String.valueOf(tripleID));
 		}
 
 		LOG.info("Valor de hdt.getDictionary() por Henrry: {}", hdt.getDictionary());
