@@ -23,25 +23,10 @@ public class LoadTriples {
         }catch (Exception e){
 
             System.err.println("Error al generar el objeto HDT Henrry: " + e.getMessage());
-            e.printStackTrace();  // Esto imprimirá la traza de la excepción
+            e.printStackTrace();
         }
         return hdt;
 	}
-
-//    public static HDT fromDataset(ExecutionEnvironment environment, String filePath) {
-//        Preconditions.checkNotNull(filePath, "La ruta del archivo no puede ser nula...");
-//        HDT hdt = null;
-//
-//        try {
-//            String baseURI = "file://" + System.getProperty("user.dir") + "/examples/dataset.nt";
-//            hdt = HDTManager.generateHDT(filePath, baseURI, RDFNotation.parse("ntriples"), new HDTSpecification(), null);
-//        } catch (Exception e) {
-//                       System.err.println("Error al generar el objeto HDT: " + e.getMessage());
-//            e.printStackTrace();
-//        }
-//
-//        return hdt;
-//    }
 
 
 }
