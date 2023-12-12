@@ -70,14 +70,14 @@ public class TripleIDConvert {
     }
 
     public static Integer stringToIDSubject(Dictionary dictionary, String element) {
-        return dictionary.stringToId(element, TripleComponentRole.SUBJECT);
+        return Math.toIntExact(dictionary.stringToId(element, TripleComponentRole.SUBJECT));
     }
 
     public static Integer stringToIDPredicate(Dictionary dictionary, String element) {
-        return dictionary.stringToId(element, TripleComponentRole.PREDICATE);
+        return Math.toIntExact(dictionary.stringToId(element, TripleComponentRole.PREDICATE));
     }
 
     public static Integer stringToIDObject(Dictionary dictionary, String element) {
-        return dictionary.stringToId(element, TripleComponentRole.OBJECT);
+        return Math.toIntExact(dictionary.stringToId(element, TripleComponentRole.OBJECT));
     }
 }

@@ -41,12 +41,12 @@ under the License.
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flink.version>1.15.0</flink.version>  <!--	Se actualizó de la versión 1.10.0 a 1.15.0	-->
-		<target.java.version>1.8</target.java.version>
+		<target.java.version>11</target.java.version>
 		<scala.binary.version>2.12</scala.binary.version> <!--	Se actualizó de version 2.11 a 2.12-->
 		<maven.compiler.source>${target.java.version}</maven.compiler.source>
 		<maven.compiler.target>${target.java.version}</maven.compiler.target>
 		<log4j.version>2.17.1</log4j.version>
-		<jena.version>4.10.0</jena.version> <!--	Se actualizó de version 3.6.0 a 3.9.0 ero se volvió a la 3.6.0 por cuestiones de licencia -->
+		<jena.version>4.3.2</jena.version> <!--	Se actualizó de version 3.6.0 a 3.9.0 ero se volvió a la 3.6.0 por cuestiones de licencia -->
 	</properties>
 
 	<repositories>
