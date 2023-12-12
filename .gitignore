@@ -1,6 +1,6 @@
-.idea
-**/target/
-**/out/
-*.log
-/examples/Query-Flink-Result
-*.class
+#.idea
+#**/target/
+#**/out/
+#*.log
+#/examples/Query-Flink-Result
+#*.class
