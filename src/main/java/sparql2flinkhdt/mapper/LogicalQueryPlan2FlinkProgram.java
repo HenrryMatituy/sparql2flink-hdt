@@ -72,9 +72,9 @@ public class LogicalQueryPlan2FlinkProgram {
 
         logicalQueryPlan.visit(new ConvertLQP2FlinkProgram());
 
-        flinkProgram += "LOG.info(\" ConvertLQP2FlinkProgram(). Conversión exitosa\\n\");";
+        flinkProgram += "LOG.info(\" ConvertLQP2FlinkProgram(). Conversión exitosa\");\n\n";
 
-        flinkProgram += "LOG.info(\"Obteniendo el programa Flink\\n\");";
+        flinkProgram += "LOG.info(\"Obteniendo el programa Flink\");\n";
 
         flinkProgram += ConvertLQP2FlinkProgram.getFlinkProgram();
 
@@ -86,12 +86,12 @@ public class LogicalQueryPlan2FlinkProgram {
 //        flinkProgram += "LOG.info(\"Programa Flink obtenido: {}\", flinkProgram);";
 //        flinkProgram += "LOG.info(\"Flink\");";
 
-        flinkProgram += "LOG.info(\"Aplicando transformaciones adicionales\\n\");";
+        flinkProgram += "LOG.info(\"Aplicando transformaciones adicionales\");\n";
 
         flinkProgram += "\t\tDataSet<SolutionMappingURI> sm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
                 "\t\t\t.map(new TripleID2TripleString(hdt.getDictionary()));\n\n";
 
-        flinkProgram += "LOG.info(\"Transformaciones aplicadas exitosamente\\n\");";
+        flinkProgram += "LOG.info(\"Transformaciones aplicadas exitosamente\");\n";
 
         flinkProgram += "\t\t//************ Sink  ************\n" +
                 "\t\tsm"+(SolutionMapping.getIndice()) +

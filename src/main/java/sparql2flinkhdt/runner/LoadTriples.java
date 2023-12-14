@@ -16,6 +16,11 @@ public class LoadTriples {
         try {
             hdt = HDTManager.generateHDT(filePath, "", RDFNotation.parse("ntriples"), new HDTSpecification(),null);
 
+
+//            String hdtFilePath = filePath;
+//            hdt = HDTManager.generateHDT(filePath, "", RDFNotation.parse("ntriples"), new HDTSpecification(),hdtFilePath);
+
+
 //            HDT hdt1 = HDTManager.generateHDT(
 //                    rdfInput,         // Input RDF File
 //                    baseURI,          // Base URI
