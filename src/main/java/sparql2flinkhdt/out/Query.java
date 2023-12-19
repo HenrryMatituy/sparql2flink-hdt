@@ -22,6 +22,8 @@ public class Query {
 
 	public static void main(String[] args) throws Exception {
 
+		try {
+
 		LOG.info("Inicio de la aplicación Henrry");
 		final ParameterTool params = ParameterTool.fromArgs(args);
 
@@ -35,22 +37,33 @@ public class Query {
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 		HDT hdt = LoadTriples.fromDataset(env, params.get("dataset"));
 
+	if (hdt != null) {
+	LOG.info("El valor de el objeto hdt es correcto");
+	} else {
+	LOG.info("El valor de el objeto hdt es Nulo");
+	}
+	if (hdt.getDictionary() != null){
+	LOG.info("Valor de hdt.getDictionary() es: {}", hdt.getDictionary());
+	} else {
+	LOG.info("El diccionario es nulo. Verificar la inicialización de hdt.");
+	}
 		ArrayList<TripleID> listTripleID = new ArrayList<>();
+		try {
 		IteratorTripleID iterator = hdt.getTriples().searchAll();
 		while(iterator.hasNext()) {
 			TripleID tripleID = new TripleID(iterator.next());
 			listTripleID.add(tripleID);
 		}
 
-		LOG.info("Valor de hdt.getDictionary() por Henrry: {}", hdt.getDictionary());
-		DataSet<TripleID> dataset = env.fromCollection(listTripleID);
+	LOG.info("Busqueda de triples HDT completada");
+		} catch (Exception e){
+	LOG.info("El error de tripes está en:",e);
+		e.printStackTrace();
+		}		DataSet<TripleID> dataset = env.fromCollection(listTripleID);
 
-		LOG.info("Número total de triples en el conjunto de datos: {}", listTripleID.size());
+	LOG.info("Número total de triples en el conjunto de datos: {}", listTripleID.size());
 		//************ Applying Transformations ************
-LOG.info(" ConvertLQP2FlinkProgram(). Conversión exitosa");
-
-LOG.info("Obteniendo el programa Flink");
-		DataSet<SolutionMappingHDT> sm1 = dataset
+LOG.info(" ConvertLQP2FlinkProgram(). Conversión exitosa\n");LOG.info("Obteniendo el programa Flink\n");		DataSet<SolutionMappingHDT> sm1 = dataset
 			.filter(new Triple2Triple(hdt.getDictionary(), null, "http://xmlns.com/foaf/0.1/name", null))
 			.map(new Triple2SolutionMapping("?person", null, "?name"));
 
@@ -66,15 +79,20 @@ LOG.info("Obteniendo el programa Flink");
 		DataSet<SolutionMappingHDT> sm4 = sm3
 			.map(new Project(new String[]{"?person", "?name", "?mbox"}));
 
-LOG.info("Aplicando transformaciones adicionales");
-		DataSet<SolutionMappingURI> sm5 = sm4
+LOG.info("Aplicando transformaciones adicionales\n");		DataSet<SolutionMappingURI> sm5 = sm4
 			.map(new TripleID2TripleString(hdt.getDictionary()));
 
-LOG.info("Transformaciones aplicadas exitosamente");
 		//************ Sink  ************
 		sm5.writeAsText(params.get("output")+"Query-Flink-Result", FileSystem.WriteMode.OVERWRITE)
 			.setParallelism(1);
 
 		env.execute("SPARQL Query to Flink Programan - DataSet API");
+		} catch (Exception e){
+
+		LOG.info("El error ocurre cuando:",e);
+
+e.printStackTrace();
+		}
+
 	}
 }
