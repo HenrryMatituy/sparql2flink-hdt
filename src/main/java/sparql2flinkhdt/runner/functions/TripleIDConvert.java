@@ -5,9 +5,13 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.rdfhdt.hdt.dictionary.Dictionary;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sparql2flinkhdt.out.Query;
+
 
 public class TripleIDConvert {
-
+    private static final Logger LOG = LoggerFactory.getLogger(Query.class);
     public static Node idToString(Dictionary dictionary, Integer[] id) {
         Node element;
         if (id[1] == 1) {
@@ -73,9 +77,19 @@ public class TripleIDConvert {
         return dictionary.stringToId(element, TripleComponentRole.SUBJECT);
     }
 
+//    public static Integer stringToIDPredicate(Dictionary dictionary, String element) {
+//        return dictionary.stringToId(element, TripleComponentRole.PREDICATE);
+//    }
+
     public static Integer stringToIDPredicate(Dictionary dictionary, String element) {
-        return dictionary.stringToId(element, TripleComponentRole.PREDICATE);
+//        if (dictionary != null) {
+            return dictionary.stringToId(element, TripleComponentRole.PREDICATE);
+//        } else {
+//            LOG.info("Pilas el diccionario es nulo");
+//            return -1;
+//        }
     }
+
 
     public static Integer stringToIDObject(Dictionary dictionary, String element) {
         return dictionary.stringToId(element, TripleComponentRole.OBJECT);

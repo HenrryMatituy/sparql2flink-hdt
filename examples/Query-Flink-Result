@@ -1,3 +1,3 @@
 ?name-->"Charlie"	?person-->http://example.org/charlie	
-?name-->"Bob"	?person-->http://example.org/bob	
 ?name-->"Alice"	?mbox-->mailto:alice@example.org	?person-->http://example.org/alice	
+?name-->"Bob"	?person-->http://example.org/bob	

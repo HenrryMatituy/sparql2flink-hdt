@@ -44,6 +44,7 @@ public class LogicalQueryPlan2FlinkProgram {
                 // el logger
                 "\n" +
                 "\tpublic static void main(String[] args) throws Exception {\n\n" +
+                "\t\ttry {\n\n" +
                 "\t\tLOG.info(\"Inicio de la aplicación Henrry\");\n" +
                 "\t\tfinal ParameterTool params = ParameterTool.fromArgs(args);\n\n" +
                 "\t\tif (!params.has(\"dataset\") && !params.has(\"output\")) {\n" +
@@ -58,47 +59,62 @@ public class LogicalQueryPlan2FlinkProgram {
                 "\t\tfinal ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();\n" +
                 "\t\tHDT hdt = LoadTriples.fromDataset(env, params.get(\"dataset\"));\n\n" +
 
+                "\tif (hdt != null) {\n" +
+                "\tLOG.info(\"El valor de el objeto hdt es correcto\");\n" +
+                "\t} else {\n" +
+                "\tLOG.info(\"El valor de el objeto hdt es Nulo\");\n" +
+                "\t}\n"+
+
+                "\tif (hdt.getDictionary() != null){\n" +
+                "\tLOG.info(\"Valor de hdt.getDictionary() es: {}\", hdt.getDictionary());\n" +  // Sacando el valor de hdt.getDictionary()
+                "\t} else {\n" +
+                "\tLOG.info(\"El diccionario es nulo. Verificar la inicialización de hdt.\");\n" +
+                "\t}\n" +
+
                 "\t\tArrayList<TripleID> listTripleID = new ArrayList<>();\n" +
+                "\t\ttry {\n" +
                 "\t\tIteratorTripleID iterator = hdt.getTriples().searchAll();\n" +
                 "\t\twhile(iterator.hasNext()) {\n" +
                 "\t\t\tTripleID tripleID = new TripleID(iterator.next());\n" +
                 "\t\t\tlistTripleID.add(tripleID);\n" +
                 "\t\t}\n\n" +
-                "\t\tLOG.info(\"Valor de hdt.getDictionary() por Henrry: {}\", hdt.getDictionary());\n" +  // Sacando
-                //  el valor de hdt.getDictionary()
+                "\tLOG.info(\"Busqueda de triples HDT completada\");\n" +
+                "\t\t} catch (Exception e){\n" +
+                "\tLOG.info(\"El error de tripes está en:\",e);\n" +
+                "\t\te.printStackTrace();\n" +
+                "\t\t}" +
                 "\t\tDataSet<TripleID> dataset = env.fromCollection(listTripleID);\n\n" +
-                "\t\tLOG.info(\"Número total de triples en el conjunto de datos: {}\", listTripleID.size());\n" +
+                "\tLOG.info(\"Número total de triples en el conjunto de datos: {}\", listTripleID.size());\n" +
                 "\t\t//************ Applying Transformations ************\n";
 
         logicalQueryPlan.visit(new ConvertLQP2FlinkProgram());
 
-        flinkProgram += "LOG.info(\" ConvertLQP2FlinkProgram(). Conversión exitosa\");\n\n";
+        flinkProgram += "LOG.info(\" ConvertLQP2FlinkProgram(). Conversión exitosa\\n\");";
 
-        flinkProgram += "LOG.info(\"Obteniendo el programa Flink\");\n";
+        flinkProgram += "LOG.info(\"Obteniendo el programa Flink\\n\");";
 
         flinkProgram += ConvertLQP2FlinkProgram.getFlinkProgram();
 
-//        flinkProgram += "LOG.info(\"Programa Flink obtenido: {}\", flinkProgram + \"\\n\");";
-//        flinkProgram += "LOG.info(\"Programa Flink obtenido :\\n{}\", \"" + flinkProgram + "\");";
-//        flinkProgram += "LOG.info(\"Programa Flink obtenido:\\n{}\", \"" + flinkProgram + "\" + \"\\n\");";
-//        flinkProgram += "LOG.info(\"Programa Flink obtenido:\\n{}\", \"" + flinkProgram + "\");";
-//        flinkProgram += "LOG.info(\"Programa Flink obtenido: \", flinkProgram);";
-//        flinkProgram += "LOG.info(\"Programa Flink obtenido: {}\", flinkProgram);";
-//        flinkProgram += "LOG.info(\"Flink\");";
-
-        flinkProgram += "LOG.info(\"Aplicando transformaciones adicionales\");\n";
+        flinkProgram += "LOG.info(\"Aplicando transformaciones adicionales\\n\");";
 
         flinkProgram += "\t\tDataSet<SolutionMappingURI> sm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
                 "\t\t\t.map(new TripleID2TripleString(hdt.getDictionary()));\n\n";
 
-        flinkProgram += "LOG.info(\"Transformaciones aplicadas exitosamente\");\n";
-
+//        flinkProgram += "LOG.info(\"Transformaciones aplicadas exitosamente\\n\");";
         flinkProgram += "\t\t//************ Sink  ************\n" +
                 "\t\tsm"+(SolutionMapping.getIndice()) +
                 ".writeAsText(params.get(\"output\")+\""+className+"-Flink-Result\", FileSystem.WriteMode.OVERWRITE)\n" +
                 "\t\t\t.setParallelism(1);\n\n" +
-                "\t\tenv.execute(\"SPARQL Query to Flink Programan - DataSet API\");\n" +
-                "\t}\n}";
+                "\t\tenv.execute(\"SPARQL Query to Flink Programan - DataSet API\");\n";
+
+        flinkProgram +=  "\t\t} catch (Exception e){\n\n";
+        flinkProgram +=  "\t\tLOG.info(\"El error ocurre cuando:\",e);\n\n";
+        flinkProgram +=  "e.printStackTrace();\n";
+        flinkProgram +=  "\t\t}\n\n";
+
+                flinkProgram+= "\t}\n}";
+
+
 
         return flinkProgram;
     }
