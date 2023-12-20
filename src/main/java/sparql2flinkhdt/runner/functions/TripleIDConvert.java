@@ -7,11 +7,10 @@ import org.rdfhdt.hdt.dictionary.Dictionary;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sparql2flinkhdt.out.Query;
 
 
 public class TripleIDConvert {
-    private static final Logger LOG = LoggerFactory.getLogger(Query.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TripleIDConvert.class);
     public static Node idToString(Dictionary dictionary, Integer[] id) {
         Node element;
         if (id[1] == 1) {
@@ -82,12 +81,14 @@ public class TripleIDConvert {
 //    }
 
     public static Integer stringToIDPredicate(Dictionary dictionary, String element) {
-//        if (dictionary != null) {
+        if (dictionary != null) {
             return dictionary.stringToId(element, TripleComponentRole.PREDICATE);
-//        } else {
+        } else {
 //            LOG.info("Pilas el diccionario es nulo");
 //            return -1;
-//        }
+            throw new NullPointerException("Pilas, el objeto Dictionary es nulo");
+
+        }
     }
 
 
