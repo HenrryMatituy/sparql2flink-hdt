@@ -7,13 +7,14 @@ import org.rdfhdt.hdt.triples.TripleID;
 
 import java.util.HashMap;
 
+import org.rdfhdt.hdt.dictionary.Dictionary;
+
 //Triple to SolutionMapping - Map Function
 public class Triple2SolutionMapping implements MapFunction<TripleID, SolutionMappingHDT> {
 
-    private String var_s, var_p, var_o = null;
-
-    public Triple2SolutionMapping(String s, String p, String o){
-        this.var_s = s;
+    private String  var_s, var_p, var_o = null;
+     public Triple2SolutionMapping(String s, String p, String o){
+          this.var_s = s;
         this.var_p = p;
         this.var_o = o;
     }

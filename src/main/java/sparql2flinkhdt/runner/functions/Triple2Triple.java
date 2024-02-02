@@ -3,10 +3,13 @@ package sparql2flinkhdt.runner.functions;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.rdfhdt.hdt.dictionary.Dictionary;
 import org.rdfhdt.hdt.triples.TripleID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //Triple to Triple - Filter Function
 public class Triple2Triple implements FilterFunction<TripleID> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Triple2Triple.class);
     private static Dictionary dictionary = null;
     private String subject, predicate, object = null;
 
@@ -15,6 +18,15 @@ public class Triple2Triple implements FilterFunction<TripleID> {
         this.subject = s;
         this.predicate = p;
         this.object = o;
+//        if (dictionary != null) {
+//            LOG.info("hasta aquí va el diccionario: Triple2Triple " + dictionary);
+//        }
+//        else
+//        {
+//            LOG.info("hasta aquí va el diccionario llegó nulo: Triple2Triple");
+//        }
+
+
     }
 
     @Override

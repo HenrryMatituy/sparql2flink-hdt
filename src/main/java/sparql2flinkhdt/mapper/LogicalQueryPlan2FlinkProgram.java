@@ -33,13 +33,15 @@ public class LogicalQueryPlan2FlinkProgram {
                 "import org.rdfhdt.hdt.triples.IteratorTripleID;\n" +
                 "import org.rdfhdt.hdt.triples.TripleID;\n" +
 
+                        "import java.io.Serializable;\n" +
+
                 "import sparql2flinkhdt.runner.functions.*;\n" +
                 "import sparql2flinkhdt.runner.LoadTriples;\n" +
                 "import sparql2flinkhdt.runner.functions.order.*;\n" +
                 "import java.math.*;\n" +
                 "import java.util.ArrayList;\n" +
 
-                "\npublic class "+className+" {\n" +
+                "\npublic class "+className+" implements Serializable {\n" +
                 "\tprivate static final Logger LOG = LoggerFactory.getLogger(" + className + ".class);\n" +  // Creando
                 // el logger
                 "\n" +
@@ -89,13 +91,13 @@ public class LogicalQueryPlan2FlinkProgram {
 
         logicalQueryPlan.visit(new ConvertLQP2FlinkProgram());
 
-        flinkProgram += "LOG.info(\" ConvertLQP2FlinkProgram(). Conversión exitosa\\n\");";
+        flinkProgram += "LOG.info(\" ConvertLQP2FlinkProgram(). Conversión exitosa\");\n\n";
 
-        flinkProgram += "LOG.info(\"Obteniendo el programa Flink\\n\");";
+        flinkProgram += "LOG.info(\"Obteniendo el programa Flink\");\n\n";
 
         flinkProgram += ConvertLQP2FlinkProgram.getFlinkProgram();
 
-        flinkProgram += "LOG.info(\"Aplicando transformaciones adicionales\\n\");";
+        flinkProgram += "LOG.info(\"Aplicando transformaciones adicionales\");\n\n";
 
         flinkProgram += "\t\tDataSet<SolutionMappingURI> sm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
                 "\t\t\t.map(new TripleID2TripleString(hdt.getDictionary()));\n\n";

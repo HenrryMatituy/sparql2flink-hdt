@@ -8,8 +8,10 @@ import org.rdfhdt.hdt.enums.TripleComponentRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 
-public class TripleIDConvert {
+
+public class TripleIDConvert implements Serializable {
     private static final Logger LOG = LoggerFactory.getLogger(TripleIDConvert.class);
     public static Node idToString(Dictionary dictionary, Integer[] id) {
         Node element;
