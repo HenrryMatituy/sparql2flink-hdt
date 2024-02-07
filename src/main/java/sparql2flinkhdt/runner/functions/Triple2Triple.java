@@ -18,13 +18,13 @@ public class Triple2Triple implements FilterFunction<TripleID> {
         this.subject = s;
         this.predicate = p;
         this.object = o;
-//        if (dictionary != null) {
-//            LOG.info("hasta aquí va el diccionario: Triple2Triple " + dictionary);
-//        }
-//        else
-//        {
-//            LOG.info("hasta aquí va el diccionario llegó nulo: Triple2Triple");
-//        }
+        if (dictionary != null) {
+            LOG.info("hasta aquí va el diccionario: Triple2Triple " + dictionary);
+        }
+        else
+        {
+            LOG.info("Se pierde el diccionario llegó nulo: Triple2Triple");
+        }
 
 
     }
