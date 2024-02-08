@@ -6,8 +6,10 @@ import org.rdfhdt.hdt.triples.TripleID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+
 //Triple to Triple - Filter Function
-public class Triple2Triple implements FilterFunction<TripleID> {
+public class Triple2Triple implements FilterFunction<TripleID>, Serializable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Triple2Triple.class);
     private static Dictionary dictionary = null;
