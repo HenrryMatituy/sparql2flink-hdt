@@ -39,6 +39,11 @@ public class SolutionMappingHDT implements Serializable {
         public Integer getRole() {
             return role;
         }
+
+        @Override
+        public String toString() {
+            return "MappingValue{id=" + id + ", role=" + role + "}";
+        }
     }
 
     private HashMap<String, MappingValue> mapping = new HashMap<>();
@@ -69,14 +74,15 @@ public class SolutionMappingHDT implements Serializable {
     public void putMapping(String var, MappingValue val) {
         if (var != null && val != null) {
             mapping.put(var, val);
+            // Verificación adicional de serialización
+            if (!(var instanceof Serializable) || !(val instanceof Serializable)) {
+                System.err.println("Advertencia: Variable o valor no son serializables. Var=" + var + ", Val=" + val);
+            }
         } else {
             logger.warning("Intento de agregar un mapeo con variable o valor nulo.");
         }
     }
 
-    public boolean existMapping(String var, Long val) {
-        return mapping.containsKey(var) && mapping.get(var).getId().equals(val);
-    }
 
     public SolutionMappingHDT join(SolutionMappingHDT sm) {
         SolutionMappingHDT result = new SolutionMappingHDT(this.serializableDictionary);

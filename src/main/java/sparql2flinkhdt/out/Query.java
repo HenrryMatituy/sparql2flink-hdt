@@ -1,5 +1,6 @@
 package sparql2flinkhdt.out;
 
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -116,21 +117,211 @@ public class Query {
 //			e.printStackTrace();
 //		}
 
+//		Solo map
+
+//		DataSet<SolutionMappingHDT> sm1 = dataset
+//				.map(new Triple2SolutionMapping("?person", serializableDictionary));
+//
+//		try {
+//			// Recogemos los datos en una lista y los imprimimos
+//			List<SolutionMappingHDT> results = sm1.collect();
+//			System.out.println("Número de elementos en sm1: " + results.size());
+//			for (SolutionMappingHDT result : results) {
+//				System.out.println(result);
+//			}
+//			System.out.println("Ejecución del trabajo de Flink finalizada.");
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+
+		//MapFunction para descartar problem solutionmappingHDT
+//		DataSet<String> sm1 = dataset
+//				.map(new MapFunction<TripleID, String>() {
+//					@Override
+//					public String map(TripleID t) {
+//						return "Triple: Sujeto=" + t.getSubject() + ", Predicado=" + t.getPredicate() + ", Objeto=" + t.getObject();
+//					}
+//				});
+//
+//		try {
+//			List<String> results = sm1.collect();
+//			System.out.println("Número de elementos en sm1: " + results.size());
+//			for (String result : results) {
+//				System.out.println(result);
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+
+// SolutionMapping Simplificado
+//		DataSet<SolutionMappingHDT> sm1 = dataset
+//				.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+//					@Override
+//					public SolutionMappingHDT map(TripleID t) {
+//						SolutionMappingHDT sm = new SolutionMappingHDT();
+//						System.out.println("Mapeando TripleID: Sujeto=" + t.getSubject() + ", Predicado=" + t.getPredicate() + ", Objeto=" + t.getObject());
+//						return sm;  // Retorna un objeto vacío de SolutionMappingHDT
+//					}
+//				});
+//
+//		try {
+//			List<SolutionMappingHDT> results = sm1.collect();
+//			System.out.println("Número de elementos en sm1: " + results.size());
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+
+//		Implementando el resto de código Mapeo Sujeto
+//		DataSet<SolutionMappingHDT> sm1 = dataset
+//				.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+//					@Override
+//					public SolutionMappingHDT map(TripleID t) {
+//						SolutionMappingHDT sm = new SolutionMappingHDT();
+//						System.out.println("Mapeando sujeto del TripleID: " + t.getSubject());
+//						sm.putMapping("?person", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));  // Solo mapea el sujeto
+//						return sm;
+//					}
+//				});
+//
+//		try {
+//			List<SolutionMappingHDT> results = sm1.collect();
+//			System.out.println("Número de elementos en sm1: " + results.size());
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+// Mapeo sujeto y predicado
+//		DataSet<SolutionMappingHDT> sm1 = dataset
+//				.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+//					@Override
+//					public SolutionMappingHDT map(TripleID t) {
+//						SolutionMappingHDT sm = new SolutionMappingHDT();
+//
+//						// Mapeo del sujeto
+//						System.out.println("Mapeando sujeto del TripleID: " + t.getSubject());
+//						sm.putMapping("?person", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));  // Mapea el sujeto
+//
+//						// Mapeo del predicado
+//						System.out.println("Mapeando predicado del TripleID: " + t.getPredicate());
+//						sm.putMapping("?predicate", new SolutionMappingHDT.MappingValue(t.getPredicate(), 2));  // Mapea el predicado
+//
+//						return sm;
+//					}
+//				});
+//
+//		try {
+//			List<SolutionMappingHDT> results = sm1.collect();
+//			System.out.println("Número de elementos en sm1: " + results.size());
+//			for (SolutionMappingHDT result : results) {
+//				System.out.println(result);
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+
+//		DataSet<SolutionMappingHDT> sm1 = dataset
+//				.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+//					@Override
+//					public SolutionMappingHDT map(TripleID t) {
+//						SolutionMappingHDT sm = new SolutionMappingHDT();
+//
+//						// Mapeo del sujeto
+//
+//						System.out.println("Mapeando sujeto del TripleID: " + t.getSubject());
+//						sm.putMapping("?person", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));  // Mapea el sujeto
+//
+//						// Mapeo del predicado
+//						System.out.println("Mapeando predicado del TripleID: " + t.getPredicate());
+//						sm.putMapping("?predicate", new SolutionMappingHDT.MappingValue(t.getPredicate(), 2));  // Mapea el predicado
+//
+//						// Mapeo del objeto
+//						System.out.println("Mapeando objeto del TripleID: " + t.getObject());
+//						sm.putMapping("?object", new SolutionMappingHDT.MappingValue(t.getObject(), 3));  // Mapea el objeto
+//
+//						return sm;
+//					}
+//				});
+//
+//		try {
+//			List<SolutionMappingHDT> results = sm1.collect();
+//			System.out.println("Número de elementos en sm1: " + results.size());
+//			for (SolutionMappingHDT result : results) {
+//				System.out.println(result);
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+
+//		DataSet<SolutionMappingHDT> sm1 = dataset
+//				.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+//					@Override
+//					public SolutionMappingHDT map(TripleID t) {
+//						SolutionMappingHDT sm = new SolutionMappingHDT();
+//
+//						// Mapeo del sujeto
+//						System.out.println("Mapeando sujeto del TripleID: " + t.getSubject());
+//						sm.putMapping("?person", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));  // Mapea el sujeto
+//
+//						// Mapeo del objeto
+//						System.out.println("Mapeando objeto del TripleID: " + t.getObject());
+//						sm.putMapping("?name", new SolutionMappingHDT.MappingValue(t.getObject(), 3));  // Mapea el objeto
+//
+//						return sm;
+//					}
+//				});
+//
+//		try {
+//			List<SolutionMappingHDT> results = sm1.collect();
+//			System.out.println("Número de elementos en sm1: " + results.size());
+//			for (SolutionMappingHDT result : results) {
+//				System.out.println(result);
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+//		DataSet<TripleID> filteredDataset = dataset
+//				.filter(new Triple2Triple(serializableDictionary, null, "http://xmlns.com/foaf/0.1/name", null));
+//
+//		try {
+//			long count = filteredDataset.count();
+//			System.out.println("Número de elementos filtrados: " + count);
+//
+//			// Opcional: Imprimir los triples filtrados
+//			List<TripleID> filteredResults = filteredDataset.collect();
+//			for (TripleID triple : filteredResults) {
+//				System.out.println("Triple filtrado - Sujeto: " + triple.getSubject() + ", Predicado: " + triple.getPredicate() + ", Objeto: " + triple.getObject());
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//
+
 		DataSet<SolutionMappingHDT> sm1 = dataset
-				.map(new Triple2SolutionMapping("?person", serializableDictionary));
+				.filter(new Triple2Triple(serializableDictionary, null, "http://xmlns.com/foaf/0.1/name", null))
+				.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+					@Override
+					public SolutionMappingHDT map(TripleID t) {
+						SolutionMappingHDT sm = new SolutionMappingHDT();
+
+						// Mapeo del sujeto
+						sm.putMapping("?person", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+
+						// Mapeo del objeto
+						sm.putMapping("?name", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+
+						return sm;
+					}
+				});
 
 		try {
-			// Recogemos los datos en una lista y los imprimimos
 			List<SolutionMappingHDT> results = sm1.collect();
 			System.out.println("Número de elementos en sm1: " + results.size());
 			for (SolutionMappingHDT result : results) {
 				System.out.println(result);
 			}
-			System.out.println("Ejecución del trabajo de Flink finalizada.");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 
 //		// Crear el primer conjunto de mapeo de soluciones (sm1) para personas y nombres
 //		DataSet<SolutionMappingHDT> sm1 = dataset

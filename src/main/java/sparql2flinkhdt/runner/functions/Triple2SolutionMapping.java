@@ -11,27 +11,35 @@ public class Triple2SolutionMapping implements MapFunction<TripleID, SolutionMap
     private String var_s;
     private SerializableDictionary serializableDictionary;
 
-    public Triple2SolutionMapping(String s, SerializableDictionary serializableDictionary){
+    public Triple2SolutionMapping(String s, SerializableDictionary serializableDictionary) {
         this.var_s = s;
         this.serializableDictionary = serializableDictionary;
     }
 
     @Override
-    public SolutionMappingHDT map(TripleID t) {
+      public SolutionMappingHDT map(TripleID t) {
         SolutionMappingHDT sm = new SolutionMappingHDT(serializableDictionary);
         try {
             System.out.println("Entrando al método map con Sujeto=" + t.getSubject());
 
+            // Mapeo basado en la variable del sujeto
             if (var_s != null) {
-                sm.putMapping(var_s, new MappingValue(t.getSubject(), 1));
                 System.out.println("Mapeando sujeto");
+                sm.putMapping(var_s, new MappingValue(t.getSubject(), 1));
+            } else {
+                System.out.println("Advertencia: Sujeto no asignado");
             }
 
-            System.out.println("Mapeo completado: " + sm.getMapping());
+            // Añadimos una verificación final de la integridad del mapeo
+            if (sm.getMapping().isEmpty()) {
+                System.err.println("Error: El mapeo resultante está vacío.");
+            } else {
+                System.out.println("Mapeo completado: " + sm.getMapping());
+            }
         } catch (Exception e) {
             System.err.println("Excepción en el método map: " + e.getMessage());
             e.printStackTrace();
-            throw e; // Re-lanzar la excepción para que Flink la maneje adecuadamente
+            throw e;
         }
         return sm;
     }
