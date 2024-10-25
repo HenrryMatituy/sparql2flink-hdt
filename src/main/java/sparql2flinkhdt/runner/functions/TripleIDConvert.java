@@ -12,40 +12,6 @@ import java.util.logging.Logger;
 public class TripleIDConvert {
 
     private static final Logger logger = Logger.getLogger(TripleIDConvert.class.getName());
-    public static Node idToString(SerializableDictionary dictionary, SolutionMappingHDT.MappingValue mappingValue) {
-        if (mappingValue == null) {
-            logger.severe("idToString: mappingValue is null (TRIPLEIDCONVERT)");
-            return null;
-        }
-
-        Long id = mappingValue.getId();
-        Integer roleCode = mappingValue.getRole();
-
-        // Depuración: imprimir ID y rol antes de convertirlo
-        System.out.println("Procesando ID: " + id + " con rol: " + getRole(roleCode));
-
-        String uri = dictionary.idToString(id, getRole(roleCode));
-        if (uri == null) {
-            logger.severe("idToString: URI is null for id (TRIPLEIDCONVERT): " + id + ", role: " + getRole(roleCode));
-            return null;
-        }
-
-        // Si es un literal (comienza con comillas dobles)
-        if (roleCode == 3 && uri.startsWith("\"")) {
-            System.out.println("Literal detectado en idToString: " + uri);  // Depuración
-            return createLiteralNode(uri);
-        }
-
-        // Si no es un literal, crear un nodo URI
-        System.out.println("Nodo URI procesado: " + uri);  // Depuración
-        return NodeFactory.createURI(uri);
-    }
-
-
-
-//    Habilitar después de prueba
-
-    // Método para convertir un MappingValue en un Node de Jena (URI o literal)
 //    public static Node idToString(SerializableDictionary dictionary, SolutionMappingHDT.MappingValue mappingValue) {
 //        if (mappingValue == null) {
 //            logger.severe("idToString: mappingValue is null (TRIPLEIDCONVERT)");
@@ -55,6 +21,9 @@ public class TripleIDConvert {
 //        Long id = mappingValue.getId();
 //        Integer roleCode = mappingValue.getRole();
 //
+//        // Depuración: imprimir ID y rol antes de convertirlo
+//        System.out.println("Procesando ID: " + id + " con rol: " + getRole(roleCode));
+//
 //        String uri = dictionary.idToString(id, getRole(roleCode));
 //        if (uri == null) {
 //            logger.severe("idToString: URI is null for id (TRIPLEIDCONVERT): " + id + ", role: " + getRole(roleCode));
@@ -63,12 +32,43 @@ public class TripleIDConvert {
 //
 //        // Si es un literal (comienza con comillas dobles)
 //        if (roleCode == 3 && uri.startsWith("\"")) {
+//            System.out.println("Literal detectado en idToString: " + uri);  // Depuración
 //            return createLiteralNode(uri);
 //        }
 //
 //        // Si no es un literal, crear un nodo URI
+//        System.out.println("Nodo URI procesado: " + uri);  // Depuración
 //        return NodeFactory.createURI(uri);
 //    }
+
+
+
+//    Habilitar después de prueba
+
+    // Método para convertir un MappingValue en un Node de Jena (URI o literal)
+    public static Node idToString(SerializableDictionary dictionary, SolutionMappingHDT.MappingValue mappingValue) {
+        if (mappingValue == null) {
+            logger.severe("idToString: mappingValue is null (TRIPLEIDCONVERT)");
+            return null;
+        }
+
+        Long id = mappingValue.getId();
+        Integer roleCode = mappingValue.getRole();
+
+        String uri = dictionary.idToString(id, getRole(roleCode));
+        if (uri == null) {
+            logger.severe("idToString: URI is null for id (TRIPLEIDCONVERT): " + id + ", role: " + getRole(roleCode));
+            return null;
+        }
+
+        // Si es un literal (comienza con comillas dobles)
+        if (roleCode == 3 && uri.startsWith("\"")) {
+            return createLiteralNode(uri);
+        }
+
+        // Si no es un literal, crear un nodo URI
+        return NodeFactory.createURI(uri);
+    }
 
     // Método auxiliar para convertir una cadena y un rol en un ID
     public static Long stringToID(SerializableDictionary dictionary, String element, TripleComponentRole role) {
