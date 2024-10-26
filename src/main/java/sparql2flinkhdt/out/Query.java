@@ -1,10 +1,15 @@
 package sparql2flinkhdt.out;
 
+import com.esotericsoftware.kryo.serializers.JavaSerializer;
+import org.apache.jena.ext.xerces.impl.dv.xs.XSSimpleTypeDecl;
+
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem;
+import org.apache.jena.ext.xerces.impl.dv.xs.XSSimpleTypeDecl;
+import org.apache.jena.graph.Node_Literal;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
 import org.rdfhdt.hdt.hdt.HDT;
 import org.rdfhdt.hdt.triples.IteratorTripleID;
@@ -29,6 +34,12 @@ public class Query {
 
 		// Crear el entorno de ejecución de Flink
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+
+			// Configuración adicional para Kryo
+//		ExecutionConfig config = env.getConfig();
+		env.getConfig().registerTypeWithKryoSerializer(Node_Literal.class, JavaSerializer.class);
+		env.getConfig().registerTypeWithKryoSerializer(XSSimpleTypeDecl.class, JavaSerializer.class);
+
 
 		// Cargar los triples del dataset HDT
 		HDT hdt = LoadTriples.fromDataset(env, params.get("dataset"));
@@ -91,7 +102,9 @@ public class Query {
 // Escribir el resultado a un archivo de texto
 		sm5.writeAsText(params.get("output") + "Query-Flink-Result", FileSystem.WriteMode.OVERWRITE)
 				.setParallelism(1);
-
+//		System.out.println("PRUEBA SM5");
+//		sm5.print();
+//		System.out.println("FIN PRUEBA SM5");
 // Ejecutar el job de Flink
 		env.execute("SPARQL Query to Flink Program - DataSet API");
 
