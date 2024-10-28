@@ -35,7 +35,7 @@ public class Query {
 		// Crear el entorno de ejecución de Flink
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
-		// Configuración adicional para Kryo
+			// Configuración adicional para Kryo
 //		ExecutionConfig config = env.getConfig();
 		env.getConfig().registerTypeWithKryoSerializer(Node_Literal.class, JavaSerializer.class);
 		env.getConfig().registerTypeWithKryoSerializer(XSSimpleTypeDecl.class, JavaSerializer.class);

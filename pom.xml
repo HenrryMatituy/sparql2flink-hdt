@@ -153,7 +153,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>SPARQL2FlinkHDT</mainClass>
+                            <mainClass>sparql2flinkhdt.SPARQL2FlinkHDT</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

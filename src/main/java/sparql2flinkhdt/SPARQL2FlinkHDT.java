@@ -1,4 +1,4 @@
-
+package sparql2flinkhdt;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.jena.sparql.algebra.Op;
