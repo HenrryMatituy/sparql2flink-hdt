@@ -1,8 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://www.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>sparql2flink</groupId>
+    <groupId>sparql2flinkhdt</groupId>
     <artifactId>query</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -12,7 +12,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.15.0</flink.version>
+        <flink.version>1.18.0</flink.version>
         <target.java.version>11</target.java.version>
         <scala.binary.version>2.12</scala.binary.version>
         <maven.compiler.source>${target.java.version}</maven.compiler.source>
@@ -21,6 +21,8 @@
         <jena.version>4.0.0</jena.version>
         <hdt.version>3.0.10</hdt.version>
     </properties>
+
+
 
     <repositories>
         <repository>
@@ -130,7 +132,6 @@
         </dependency>
     </dependencies>
 
-
     <build>
         <plugins>
             <!-- Compiler Plugin -->
@@ -144,7 +145,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Assembly Plugin for Packaging Dependencies -->
+            <!-- Assembly Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -214,131 +215,6 @@
             </plugins>
         </pluginManagement>
     </build>
-
-<!--    <build>-->
-<!--        <plugins>-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-compiler-plugin</artifactId>-->
-<!--                <version>3.8.1</version>-->
-<!--                <configuration>-->
-<!--                    <source>${target.java.version}</source>-->
-<!--                    <target>${target.java.version}</target>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-
-<!--            &lt;!&ndash; Maven Shade Plugin &ndash;&gt;-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-shade-plugin</artifactId>-->
-<!--                <version>3.2.4</version>-->
-<!--                <executions>-->
-<!--                    &lt;!&ndash; Run shade goal on package phase &ndash;&gt;-->
-<!--                    <execution>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>shade</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <artifactSet>-->
-<!--                                <excludes>-->
-<!--                                    <exclude>org.apache.flink:force-shading</exclude>-->
-<!--                                    <exclude>com.google.code.findbugs:jsr305</exclude>-->
-<!--                                </excludes>-->
-<!--                            </artifactSet>-->
-<!--                            <filters>-->
-<!--                                <filter>-->
-<!--                                    &lt;!&ndash; Do not copy the signatures in the META-INF folder. &ndash;&gt;-->
-<!--                                    &lt;!&ndash; Otherwise, this might cause SecurityExceptions when using the JAR. &ndash;&gt;-->
-<!--                                    <artifact>*:*</artifact>-->
-<!--                                    <excludes>-->
-<!--                                        <exclude>META-INF/*.SF</exclude>-->
-<!--                                        <exclude>META-INF/*.DSA</exclude>-->
-<!--                                        <exclude>META-INF/*.RSA</exclude>-->
-<!--                                    </excludes>-->
-<!--                                </filter>-->
-<!--                            </filters>-->
-<!--                            <transformers>-->
-<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
-<!--                                    <mainClass>sparql2flinkhdt.out.Query</mainClass>-->
-<!--                                </transformer>-->
-<!--                            </transformers>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
-
-<!--&lt;!&ndash;            <plugin>&ndash;&gt;-->
-<!--&lt;!&ndash;                <groupId>org.apache.maven.plugins</groupId>&ndash;&gt;-->
-<!--&lt;!&ndash;                <artifactId>maven-assembly-plugin</artifactId>&ndash;&gt;-->
-<!--&lt;!&ndash;                <version>3.3.0</version>&ndash;&gt;-->
-<!--&lt;!&ndash;                <configuration>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <archive>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <manifest>&ndash;&gt;-->
-<!--&lt;!&ndash;                            <mainClass>sparql2flinkhdt.out.Query</mainClass>&ndash;&gt;-->
-<!--&lt;!&ndash;                        </manifest>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </archive>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <descriptorRefs>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <descriptorRef>jar-with-dependencies</descriptorRef>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </descriptorRefs>&ndash;&gt;-->
-<!--&lt;!&ndash;                </configuration>&ndash;&gt;-->
-<!--&lt;!&ndash;                <executions>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <execution>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <id>make-assembly</id>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <phase>package</phase>&ndash;&gt;-->
-<!--&lt;!&ndash;                        <goals>&ndash;&gt;-->
-<!--&lt;!&ndash;                            <goal>single</goal>&ndash;&gt;-->
-<!--&lt;!&ndash;                        </goals>&ndash;&gt;-->
-<!--&lt;!&ndash;                    </execution>&ndash;&gt;-->
-<!--&lt;!&ndash;                </executions>&ndash;&gt;-->
-<!--&lt;!&ndash;            </plugin>&ndash;&gt;-->
-
-
-<!--        </plugins>-->
-
-<!--        <pluginManagement>-->
-<!--            <plugins>-->
-<!--                <plugin>-->
-<!--                    <groupId>org.eclipse.m2e</groupId>-->
-<!--                    <artifactId>lifecycle-mapping</artifactId>-->
-<!--                    <version>1.0.0</version>-->
-<!--                    <configuration>-->
-<!--                        <lifecycleMappingMetadata>-->
-<!--                            <pluginExecutions>-->
-<!--                                <pluginExecution>-->
-<!--                                    <pluginExecutionFilter>-->
-<!--                                        <groupId>org.apache.maven.plugins</groupId>-->
-<!--                                        <artifactId>maven-shade-plugin</artifactId>-->
-<!--                                        <versionRange>[3.2.4,)</versionRange>-->
-<!--                                        <goals>-->
-<!--                                            <goal>shade</goal>-->
-<!--                                        </goals>-->
-<!--                                    </pluginExecutionFilter>-->
-<!--                                    <action>-->
-<!--                                        <ignore/>-->
-<!--                                    </action>-->
-<!--                                </pluginExecution>-->
-<!--                                <pluginExecution>-->
-<!--                                    <pluginExecutionFilter>-->
-<!--                                        <groupId>org.apache.maven.plugins</groupId>-->
-<!--                                        <artifactId>maven-compiler-plugin</artifactId>-->
-<!--                                        <versionRange>[3.8.1,)</versionRange>-->
-<!--                                        <goals>-->
-<!--                                            <goal>testCompile</goal>-->
-<!--                                            <goal>compile</goal>-->
-<!--                                        </goals>-->
-<!--                                    </pluginExecutionFilter>-->
-<!--                                    <action>-->
-<!--                                        <ignore/>-->
-<!--                                    </action>-->
-<!--                                </pluginExecution>-->
-<!--                            </pluginExecutions>-->
-<!--                        </lifecycleMappingMetadata>-->
-<!--                    </configuration>-->
-<!--                </plugin>-->
-<!--            </plugins>-->
-<!--        </pluginManagement>-->
-<!--    </build>-->
 
     <profiles>
         <profile>

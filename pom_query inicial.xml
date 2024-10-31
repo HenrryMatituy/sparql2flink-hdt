@@ -1,9 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://www.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>sparql2flinkhdt</groupId>
-    <artifactId>sparql2flink-hdt</artifactId>
+    <artifactId>query</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -14,15 +14,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flink.version>1.18.0</flink.version>
         <target.java.version>11</target.java.version>
-            <scala.binary.version>2.12</scala.binary.version>
+        <scala.binary.version>2.12</scala.binary.version>
         <maven.compiler.source>${target.java.version}</maven.compiler.source>
         <maven.compiler.target>${target.java.version}</maven.compiler.target>
         <log4j.version>2.17.1</log4j.version>
         <jena.version>4.0.0</jena.version>
         <hdt.version>3.0.10</hdt.version>
     </properties>
-
-
 
     <repositories>
         <repository>
@@ -92,7 +90,7 @@
             <version>${jena.version}</version>
         </dependency>
 
-<!--        Nueva-->
+        <!--        Nueva-->
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>apache-jena-libs</artifactId>
@@ -132,6 +130,8 @@
         </dependency>
     </dependencies>
 
+
+
     <build>
         <plugins>
             <!-- Compiler Plugin -->
@@ -145,7 +145,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Assembly Plugin -->
+            <!-- Assembly Plugin for Packaging Dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -153,7 +153,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>sparql2flinkhdt.SPARQL2FlinkHDT</mainClass>
+                            <mainClass>sparql2flinkhdt.out.Query</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -215,7 +215,6 @@
             </plugins>
         </pluginManagement>
     </build>
-
     <profiles>
         <profile>
             <id>add-dependencies-for-IDEA</id>
