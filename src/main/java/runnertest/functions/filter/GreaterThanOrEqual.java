@@ -1,16 +1,17 @@
-package sparql2flinkhdt.runner.functions.filter;
+package runnertest.functions.filter;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.sparql.expr.*;
-import sparql2flinkhdt.runner.SerializableDictionary;
-import sparql2flinkhdt.runner.functions.TripleIDConvert;
+import org.apache.jena.sparql.expr.E_GreaterThanOrEqual;
+import org.apache.jena.sparql.expr.Expr;
 import sparql2flinkhdt.runner.functions.SolutionMappingHDT.MappingValue;
+import runnertest.SerializableDictionary;
+import runnertest.functions.TripleIDConvert;
 
 import java.util.HashMap;
 
-public class LessThan {
+public class GreaterThanOrEqual {
 
-	public static boolean eval(SerializableDictionary dictionary, E_LessThan expression, HashMap<String, MappingValue> sm) {
+	public static boolean eval(SerializableDictionary dictionary, E_GreaterThanOrEqual expression, HashMap<String, MappingValue> sm) {
 		Expr arg1 = expression.getArg1();
 		Expr arg2 = expression.getArg2();
 
@@ -59,7 +60,7 @@ public class LessThan {
 			return compareNodes(value_left, value_right);
 
 		} catch (Exception e) {
-			System.err.println("Error en LessThan.eval: " + e.getMessage());
+			System.err.println("Error en GreaterThanOrEqual.eval: " + e.getMessage());
 			e.printStackTrace();
 			return false;
 		}
@@ -70,21 +71,24 @@ public class LessThan {
 		Object rightValue = value_right.getLiteralValue();
 
 		if (leftValue instanceof Number && rightValue instanceof Number) {
+			// Convertir a Double para comparación general
 			double leftNum = ((Number) leftValue).doubleValue();
 			double rightNum = ((Number) rightValue).doubleValue();
-			return leftNum < rightNum;
+			return leftNum >= rightNum;
 		} else if (leftValue instanceof String && rightValue instanceof String) {
-			return ((String) leftValue).compareTo((String) rightValue) < 0;
+			return ((String) leftValue).compareTo((String) rightValue) >= 0;
 		} else if (leftValue instanceof Comparable && rightValue instanceof Comparable) {
+			// Si ambos implementan Comparable, intentamos comparar
 			try {
 				@SuppressWarnings("unchecked")
 				Comparable<Object> compLeft = (Comparable<Object>) leftValue;
-				return compLeft.compareTo(rightValue) < 0;
+				return compLeft.compareTo(rightValue) >= 0;
 			} catch (ClassCastException e) {
 				System.err.println("Tipos de datos no comparables: " + leftValue.getClass() + ", " + rightValue.getClass());
 				return false;
 			}
 		} else {
+			// Tipos de datos no compatibles para comparación
 			System.err.println("Tipos de datos no compatibles para comparación: " + leftValue.getClass() + ", " + rightValue.getClass());
 			return false;
 		}
