@@ -9,14 +9,15 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <target.java.version>11</target.java.version>
-        <jena.version>4.3.2</jena.version>
-        <hdt.version>3.0.10</hdt.version>
+        <target.java.version>1.8</target.java.version>
+        <jena.version>3.6.0</jena.version>
+        <hdt.version>1.1</hdt.version>
         <log4j.version>2.17.1</log4j.version>
     </properties>
 
     <dependencies>
-             <dependency>
+        <!-- HDT Core and API dependencies -->
+        <dependency>
             <groupId>org.rdfhdt</groupId>
             <artifactId>hdt-java-core</artifactId>
             <version>${hdt.version}</version>
@@ -27,12 +28,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>org.rdfhdt</groupId>
             <artifactId>hdt-api</artifactId>
             <version>${hdt.version}</version>
         </dependency>
+
+        <!-- Jena dependencies -->
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-core</artifactId>
@@ -50,7 +52,7 @@
             <type>pom</type>
         </dependency>
 
-
+        <!-- Logging dependencies -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
@@ -71,10 +73,9 @@
         </dependency>
     </dependencies>
 
-
     <build>
         <plugins>
-            <!-- Compiler Plugin -->
+            <!-- Compiler Plugin para Java 1.8 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -85,7 +86,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Assembly Plugin to include dependencies in the JAR -->
+            <!-- Assembly Plugin para incluir dependencias en el JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
