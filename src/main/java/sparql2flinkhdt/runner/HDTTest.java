@@ -1,4 +1,4 @@
-package runnertest;
+package sparql2flinkhdt.runner;
 
 import org.rdfhdt.hdt.enums.RDFNotation;
 import org.rdfhdt.hdt.hdt.HDT;
