@@ -14,31 +14,12 @@
         <target.java.version>11</target.java.version>
         <scala.binary.version>2.12</scala.binary.version>
         <log4j.version>2.17.1</log4j.version>
-        <jena.version>4.3.2</jena.version>
+        <jena.version>4.0.0</jena.version>
         <hdt.version>3.0.10</hdt.version>
     </properties>
 
     <dependencies>
-        <!-- Dependencias de Kryo para serialización -->
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo</artifactId>
-            <version>5.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>de.javakaffee</groupId>
-            <artifactId>kryo-serializers</artifactId>
-            <version>0.45</version>
-        </dependency>
-
-        <!-- Dependencia de Scala -->
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>${scala.binary.version}</version>
-        </dependency>
-
-        <!-- Dependencias de HDT -->
+        <!-- Dependencias originales sin flink-streaming -->
         <dependency>
             <groupId>org.rdfhdt</groupId>
             <artifactId>hdt-java-core</artifactId>
@@ -61,11 +42,6 @@
             <artifactId>flink-clients</artifactId>
             <version>${flink.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
 
         <!-- Dependencias de Jena -->
         <dependency>
@@ -85,27 +61,30 @@
             <type>pom</type>
         </dependency>
 
-        <!-- Dependencias para Logging -->
+        <!-- Dependencias de Log4j -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>${log4j.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
             <version>${log4j.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
             <version>${log4j.version}</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Maven Compiler Plugin -->
+            <!-- Plugin para compilar -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -116,7 +95,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Shade Plugin para empaquetar dependencias -->
+            <!-- Plugin para empaquetar con shade -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
