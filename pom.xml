@@ -225,32 +225,85 @@
                     <target>${target.java.version}</target>
                 </configuration>
             </plugin>
-
-            <!-- Assembly Plugin to include dependencies in the JAR -->
+<!-- Assembly Plugin to include dependencies in the JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>sparql2flinkhdt.HDTTest</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <!-- Incluye el manifest para definir la clase principal -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>sparql2flinkhdt.HDTTest</mainClass>
+                                </transformer>
+                                <!-- Merge los archivos META-INF/services (opcional) -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+
         </plugins>
     </build>
 </project>
+        <!--Con esta configuración no se encuentra la clase principal al ejecutar el jar-->
+        <!--            <plugin>-->
+        <!--                <groupId>org.apache.maven.plugins</groupId>-->
+        <!--                <artifactId>maven-shade-plugin</artifactId>-->
+        <!--                <version>3.4.1</version>-->
+        <!--                <executions>-->
+        <!--                    <execution>-->
+        <!--                        <phase>package</phase>-->
+        <!--                        <goals>-->
+        <!--                            <goal>shade</goal>-->
+        <!--                        </goals>-->
+        <!--                        <configuration>-->
+        <!--                            <createDependencyReducedPom>false</createDependencyReducedPom>-->
+        <!--                            <shadedArtifactAttached>true</shadedArtifactAttached>-->
+        <!--                            <transformers>-->
+        <!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+        <!--                                    <mainClass>sparql2flinkhdt.HDTTest</mainClass>-->
+        <!--                                </transformer>-->
+        <!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">-->
+        <!--                                    <resource>META-INF/services/org.apache.jena.sys.JenaSystem</resource>-->
+        <!--                                </transformer>-->
+        <!--                            </transformers>-->
+        <!--                        </configuration>-->
+        <!--                    </execution>-->
+        <!--                </executions>-->
+        <!--            </plugin>-->
+
+<!--Con esta configuración se genera el jar, pero no encuentra riot y rdfstream-->
+<!--<plugin>-->
+<!--<groupId>org.apache.maven.plugins</groupId>-->
+<!--<artifactId>maven-assembly-plugin</artifactId>-->
+<!--<version>3.3.0</version>-->
+<!--<configuration>-->
+<!--    <archive>-->
+<!--        <manifest>-->
+<!--            <mainClass>sparql2flinkhdt.HDTTest</mainClass>-->
+<!--        </manifest>-->
+<!--    </archive>-->
+<!--    <descriptorRefs>-->
+<!--        <descriptorRef>jar-with-dependencies</descriptorRef>-->
+<!--    </descriptorRefs>-->
+<!--</configuration>-->
+<!--<executions>-->
+<!--    <execution>-->
+<!--        <id>make-assembly</id>-->
+<!--        <phase>package</phase>-->
+<!--        <goals>-->
+<!--            <goal>single</goal>-->
+<!--        </goals>-->
+<!--    </execution>-->
+<!--</executions>-->
+<!--</plugin>-->
