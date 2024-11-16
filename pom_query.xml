@@ -84,7 +84,7 @@
 
     <build>
         <plugins>
-            <!-- Plugin para compilar -->
+            <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -95,7 +95,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Plugin para empaquetar con shade -->
+            <!-- Shade Plugin para empaquetar las dependencias y excluir paquetes no deseados -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -108,9 +108,18 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>sparql2flinkhdt/mapper/**</exclude>
+                                        <exclude>sparql2flinkhdt/runner/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>sparql2flinkhdt.SPARQL2FlinkHDT</mainClass>
+                                    <mainClass>sparql2flinkhdt.out.Query</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -119,4 +128,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
