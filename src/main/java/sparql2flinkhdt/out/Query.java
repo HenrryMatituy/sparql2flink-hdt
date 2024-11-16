@@ -100,8 +100,16 @@ public class Query {
 				.map(new TripleID2TripleString(serializableDictionary));
 
 // Escribir el resultado a un archivo de texto
-		sm5.writeAsText(params.get("output") + "Query-Flink-Result", FileSystem.WriteMode.OVERWRITE)
+
+//		sm5.writeAsText(params.get("output") + "Query-Flink-Result", FileSystem.WriteMode.OVERWRITE)
+//				.setParallelism(1);
+
+		sm5
+				.map(value -> value.toString()) // Convierte cada elemento a String
+				.writeAsText(params.get("output") + "Query-Flink-Result", FileSystem.WriteMode.OVERWRITE)
 				.setParallelism(1);
+
+
 //		System.out.println("PRUEBA SM5");
 //		sm5.print();
 //		System.out.println("FIN PRUEBA SM5");
