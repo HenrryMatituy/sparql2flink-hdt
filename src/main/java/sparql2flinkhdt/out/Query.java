@@ -15,13 +15,11 @@ import org.rdfhdt.hdt.triples.TripleID;
 import sparql2flinkhdt.runner.SerializableDictionary;
 import sparql2flinkhdt.runner.LoadTriples;
 import sparql2flinkhdt.runner.functions.*;
-
+import sparql2flinkhdt.runner.functions.order.*;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Query {
 	public static void main(String[] args) throws Exception {
-
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		if (!params.has("dataset") || !params.has("output")) {
 			System.out.println("Use --dataset para especificar la ruta del dataset y --output para especificar la ruta de salida.");
@@ -57,11 +55,30 @@ public class Query {
 				}
 			});
 
-		DataSet<SolutionMappingURI> sm5 = sm1
+		DataSet<SolutionMappingHDT> sm2 = dataset
+			.filter(new Triple2Triple(serializableDictionary, null, "http://xmlns.com/foaf/0.1/mbox", null))
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?person", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+					sm.putMapping("?mbox", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
+
+		DataSet<SolutionMappingHDT> sm3 = sm1.leftOuterJoin(sm2)
+			.where(new JoinKeySelector(new String[]{"?person"}))
+			.equalTo(new JoinKeySelector(new String[]{"?person"}))
+			.with(new LeftJoin());
+
+		DataSet<SolutionMappingHDT> sm4 = sm3
+			.map(new Project(new String[]{"?person", "?name", "?mbox"}));
+
+		DataSet<SolutionMappingURI> sm5 = sm4
 			.map(new TripleID2TripleString(serializableDictionary));
 
-		sm5
-			.map(value -> value.toString())
+		sm5.map(value -> value.toString())
 			.writeAsText(params.get("output") + "Query-Flink-Result", FileSystem.WriteMode.OVERWRITE)
 			.setParallelism(1);
 
