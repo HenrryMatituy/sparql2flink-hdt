@@ -23,8 +23,50 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
     @Override
     public void visit(OpBGP opBGP) {
         List<Triple> listTriplePatterns = opBGP.getPattern().getList();
-        flinkProgram.append(ConvertTriplePatternGroup.convert(listTriplePatterns));
+        int indice = SolutionMapping.getIndice();
+
+        for (Triple triple : listTriplePatterns) {
+            String subjectFilter = triple.getSubject().isVariable() ? "null" : "\"" + triple.getSubject().toString() + "\"";
+            String predicateFilter = triple.getPredicate().isVariable() ? "null" : "\"" + triple.getPredicate().toString() + "\"";
+            String objectFilter = triple.getObject().isVariable() ? "null" : "\"" + triple.getObject().toString() + "\"";
+
+            String subjectMapping = triple.getSubject().isVariable() ? "\"" + triple.getSubject().toString() + "\"" : "null";
+            String objectMapping = triple.getObject().isVariable() ? "\"" + triple.getObject().toString() + "\"" : "null";
+
+            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(indice).append(" = dataset\n")
+                    .append("\t\t\t.filter(new Triple2Triple(serializableDictionary, ")
+                    .append(subjectFilter).append(", ")
+                    .append(predicateFilter).append(", ")
+                    .append(objectFilter).append("))\n")
+                    .append("\t\t\t.map(new MapFunction<TripleID, SolutionMappingHDT>() {\n")
+                    .append("\t\t\t\t@Override\n")
+                    .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
+                    .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n");
+
+            if (subjectMapping != "null") {
+                flinkProgram.append("\t\t\t\t\tsm.putMapping(")
+                        .append(subjectMapping)
+                        .append(", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n");
+            }
+            if (objectMapping != "null") {
+                flinkProgram.append("\t\t\t\t\tsm.putMapping(")
+                        .append(objectMapping)
+                        .append(", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n");
+            }
+
+            flinkProgram.append("\t\t\t\t\treturn sm;\n")
+                    .append("\t\t\t\t}\n")
+                    .append("\t\t\t});\n\n");
+
+            ArrayList<String> variables = new ArrayList<>();
+            if (!subjectMapping.equals("null")) variables.add(subjectMapping);
+            if (!objectMapping.equals("null")) variables.add(objectMapping);
+            SolutionMapping.insertSolutionMapping(indice, variables);
+
+            indice++;
+        }
     }
+
 
     @Override
     public void visit(OpJoin opJoin) {
