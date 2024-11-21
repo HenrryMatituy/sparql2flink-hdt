@@ -5,8 +5,8 @@ import java.nio.file.Path;
 
 public class LogicalQueryPlan2FlinkProgram {
 
-    private Op logicalQueryPlan;
-    private String className;
+    private final Op logicalQueryPlan;
+    private final String className;
 
     public LogicalQueryPlan2FlinkProgram(Op logicalQueryPlan, Path path) {
         this.logicalQueryPlan = logicalQueryPlan;
@@ -20,7 +20,6 @@ public class LogicalQueryPlan2FlinkProgram {
     public String logicalQueryPlan2FlinkProgram() {
         StringBuilder flinkProgram = new StringBuilder();
 
-        // Header and imports
         flinkProgram.append("package sparql2flinkhdt.out;\n\n")
                 .append("import org.apache.flink.api.java.DataSet;\n")
                 .append("import org.apache.flink.api.java.ExecutionEnvironment;\n")
@@ -29,31 +28,35 @@ public class LogicalQueryPlan2FlinkProgram {
                 .append("import org.rdfhdt.hdt.triples.TripleID;\n")
                 .append("import sparql2flinkhdt.runner.SerializableDictionary;\n")
                 .append("import sparql2flinkhdt.runner.LoadTriples;\n")
-                .append("import sparql2flinkhdt.runner.functions.*;\n\n")
-                .append("import java.util.ArrayList;\n\n");
-
-        // Class definition
-        flinkProgram.append("public class ").append(className).append(" {\n")
+                .append("import sparql2flinkhdt.runner.functions.*;\n")
+                .append("import java.util.ArrayList;\n\n")
+                .append("public class ").append(className).append(" {\n")
                 .append("\tpublic static void main(String[] args) throws Exception {\n\n")
                 .append("\t\tfinal ParameterTool params = ParameterTool.fromArgs(args);\n\n")
                 .append("\t\tif (!params.has(\"dataset\") || !params.has(\"output\")) {\n")
                 .append("\t\t\tSystem.out.println(\"Use --dataset and --output to specify paths.\");\n")
-                .append("\t\t\treturn;\n\t\t}\n\n");
-
-        // Environment and dictionary setup
-        flinkProgram.append("\t\tfinal ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();\n")
+                .append("\t\t\treturn;\n\t\t}\n\n")
+                .append("\t\t// ************ Initialize Environment and Load Data ************\n")
+                .append("\t\tfinal ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();\n")
                 .append("\t\tSerializableDictionary dictionary = LoadTriples.fromDataset(env, params.get(\"dataset\"));\n\n")
                 .append("\t\tArrayList<TripleID> listTripleID = new ArrayList<>();\n")
                 .append("\t\tdictionary.getHDT().getTriples().searchAll().forEachRemaining(listTripleID::add);\n\n")
-                .append("\t\tDataSet<TripleID> dataset = env.fromCollection(listTripleID);\n\n");
+                .append("\t\tDataSet<TripleID> dataset = env.fromCollection(listTripleID);\n\n")
+                .append("\t\t// ************ Applying Transformations ************\n");
 
-        // Visit logical query plan and generate transformations
-        ConvertLQP2FlinkProgram visitor = new ConvertLQP2FlinkProgram();
-        logicalQueryPlan.visit(visitor);
-        flinkProgram.append(visitor.getFlinkProgram());
+        // Visit Logical Query Plan and append transformations to the program
+        logicalQueryPlan.visit(new ConvertLQP2FlinkProgram());
+        flinkProgram.append(ConvertLQP2FlinkProgram.getFlinkProgram());
 
-        // Execution
-        flinkProgram.append("\t\tenv.execute(\"SPARQL Query to Flink Program - DataSet API\");\n\t}\n}");
+        // Add sink and execution
+        flinkProgram.append("\t\t// ************ Write Results ************\n")
+                .append("\t\tDataSet<SolutionMappingURI> sm").append(SolutionMapping.getIndice())
+                .append(" = sm").append(SolutionMapping.getIndice() - 1)
+                .append("\n\t\t\t.map(new TripleID2TripleString(dictionary));\n\n")
+                .append("\t\tsm").append(SolutionMapping.getIndice())
+                .append(".writeAsText(params.get(\"output\") + \"").append(className).append("-Flink-Result\", FileSystem.WriteMode.OVERWRITE)\n")
+                .append("\t\t\t.setParallelism(1);\n\n")
+                .append("\t\tenv.execute(\"SPARQL Query to Flink Program - DataSet API\");\n\t}\n}");
 
         return flinkProgram.toString();
     }
