@@ -48,55 +48,148 @@ public class Query {
 		// ************ Applying Transformations ************
 		DataSet<SolutionMappingHDT> sm1 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www.w3.org/2000/01/rdf-schema#label", null))
-			.map(new Triple2SolutionMapping(null, null, "?label"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?label", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm2 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www.w3.org/2000/01/rdf-schema#comment", null))
-			.map(new Triple2SolutionMapping(null, null, "?comment"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?comment", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm3 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/producer", null))
-			.map(new Triple2SolutionMapping(null, null, "?p"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?p", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm4 = dataset
 			.filter(new Triple2Triple(serializableDictionary, null, "http://www.w3.org/2000/01/rdf-schema#label", null))
-			.map(new Triple2SolutionMapping("?p", null, "?producer"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?p", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+					sm.putMapping("?producer", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm5 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://purl.org/dc/elements/1.1/publisher", null))
-			.map(new Triple2SolutionMapping(null, null, "?p"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?p", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm6 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productFeature", null))
-			.map(new Triple2SolutionMapping(null, null, "?f"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?f", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm7 = dataset
 			.filter(new Triple2Triple(serializableDictionary, null, "http://www.w3.org/2000/01/rdf-schema#label", null))
-			.map(new Triple2SolutionMapping("?f", null, "?productFeature"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?f", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+					sm.putMapping("?productFeature", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm8 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual1", null))
-			.map(new Triple2SolutionMapping(null, null, "?propertyTextual1"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?propertyTextual1", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm9 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual2", null))
-			.map(new Triple2SolutionMapping(null, null, "?propertyTextual2"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?propertyTextual2", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm10 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual3", null))
-			.map(new Triple2SolutionMapping(null, null, "?propertyTextual3"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?propertyTextual3", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm11 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric1", null))
-			.map(new Triple2SolutionMapping(null, null, "?propertyNumeric1"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?propertyNumeric1", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm12 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric2", null))
-			.map(new Triple2SolutionMapping(null, null, "?propertyNumeric2"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?propertyNumeric2", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm13 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual4", null))
-			.map(new Triple2SolutionMapping(null, null, "?propertyTextual4"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?propertyTextual4", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm14 = sm12.leftOuterJoin(sm13)
 			.where(new JoinKeySelector(new String[]{}))
@@ -105,7 +198,14 @@ public class Query {
 
 		DataSet<SolutionMappingHDT> sm15 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual5", null))
-			.map(new Triple2SolutionMapping(null, null, "?propertyTextual5"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?propertyTextual5", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm16 = sm14.leftOuterJoin(sm15)
 			.where(new JoinKeySelector(new String[]{}))
@@ -114,7 +214,14 @@ public class Query {
 
 		DataSet<SolutionMappingHDT> sm17 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric4", null))
-			.map(new Triple2SolutionMapping(null, null, "?propertyNumeric4"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?propertyNumeric4", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm18 = sm16.leftOuterJoin(sm17)
 			.where(new JoinKeySelector(new String[]{}))
