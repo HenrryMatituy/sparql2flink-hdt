@@ -28,21 +28,20 @@ public class SolutionMapping {
         }
         return listKeys;
     }
-
-    public static void join(int indice_sm, int indice_sm_left, int indice_sm_right){
+    public static void join(int indice_sm, int indice_sm_left, int indice_sm_right) {
         ArrayList<String> variables = new ArrayList<>();
 
-        for (String varSML : solutionMapping.get(indice_sm_left)) {
-            variables.add(varSML);
-        }
+        // Añadir todas las variables del lado izquierdo
+        variables.addAll(solutionMapping.get(indice_sm_left));
 
+        // Añadir variables del lado derecho que no estén ya incluidas
         for (String varSMR : solutionMapping.get(indice_sm_right)) {
-            if (!(variables.contains(varSMR))) {
+            if (!variables.contains(varSMR)) {
                 variables.add(varSMR);
             }
         }
-        insertSolutionMapping(indice_sm, variables);
 
+        insertSolutionMapping(indice_sm, variables);
     }
 
     public static void insertSolutionMapping(Integer indice_sm, ArrayList<String> variables){

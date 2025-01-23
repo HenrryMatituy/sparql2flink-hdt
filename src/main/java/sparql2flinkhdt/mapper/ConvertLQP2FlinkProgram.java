@@ -69,16 +69,83 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
     @Override
     public void visit(OpJoin opJoin) {
-        processBinaryOp(opJoin.getLeft(), opJoin.getRight(), "join", "Join");
+        logProgress("Processing join operation");
+
+        opJoin.getLeft().visit(this);
+        int leftIndex = SolutionMapping.getIndice() - 1;
+        logProgress("Left variables: " + SolutionMapping.getSolutionMapping().get(leftIndex));
+
+        opJoin.getRight().visit(this);
+        int rightIndex = SolutionMapping.getIndice() - 1;
+        logProgress("Right variables: " + SolutionMapping.getSolutionMapping().get(rightIndex));
+
+        int joinIndex = SolutionMapping.getIndice();
+        ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
+
+        if (keys.isEmpty()) {
+            logProgress("No common variables found, using cross join");
+            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                    .append(joinIndex)
+                    .append(" = sm")
+                    .append(leftIndex)
+                    .append(".cross(sm")
+                    .append(rightIndex)
+                    .append(")\n")
+                    .append("\t\t\t.with(new Cross());\n\n");
+        } else {
+            logProgress("Common variables found: " + keys);
+            String keyString = JoinKeys.keys(keys);
+            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                    .append(joinIndex)
+                    .append(" = sm")
+                    .append(leftIndex)
+                    .append(".join(sm")
+                    .append(rightIndex)
+                    .append(")\n")
+                    .append("\t\t\t.where(new JoinKeySelector(new String[]{")
+                    .append(keyString)
+                    .append("}))\n")
+                    .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{")
+                    .append(keyString)
+                    .append("}))\n")
+                    .append("\t\t\t.with(new Join());\n\n");
+        }
+
+        SolutionMapping.join(joinIndex, leftIndex, rightIndex);
     }
 
     @Override
     public void visit(OpLeftJoin opLeftJoin) {
-        processBinaryOp(opLeftJoin.getLeft(), opLeftJoin.getRight(), "leftOuterJoin", "LeftJoin");
+        opLeftJoin.getLeft().visit(this);
+        int leftIndex = SolutionMapping.getIndice() - 1;
+
+        opLeftJoin.getRight().visit(this);
+        int rightIndex = SolutionMapping.getIndice() - 1;
+
+        int joinIndex = SolutionMapping.getIndice();
+        ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
+        String keyString = JoinKeys.keys(keys);
+
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                .append(joinIndex)
+                .append(" = sm")
+                .append(leftIndex)
+                .append(".leftOuterJoin(sm")
+                .append(rightIndex)
+                .append(")\n\t\t\t.where(new JoinKeySelector(new String[]{")
+                .append(keyString)
+                .append("}))\n\t\t\t.equalTo(new JoinKeySelector(new String[]{")
+                .append(keyString)
+                .append("}))\n\t\t\t.with(new LeftJoin());\n\n");
+
+        SolutionMapping.join(joinIndex, leftIndex, rightIndex);
+
+        // Si hay filtros adicionales
         if (opLeftJoin.getExprs() != null) {
             visit(opLeftJoin.getExprs());
         }
     }
+
 
     @Override
     public void visit(OpUnion opUnion) {
@@ -103,7 +170,6 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         // Llamar al subárbol
         opProject.getSubOp().visit(this);
 
-        // Generar operación `map` final para proyectar las variables
         flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
                 .append(SolutionMapping.getIndice())
                 .append(" = sm")
@@ -112,6 +178,7 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                 .append(varsProject)
                 .append("}));\n\n");
 
+        // Incrementar índice para reflejar el nuevo sm
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
 
@@ -168,15 +235,27 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
     private void processBinaryOp(Op left, Op right, String operation, String operatorClass) {
+        // Añadir logging para debug
+        logProgress("Processing binary operation: " + operatorClass);
+
         left.visit(this);
-        int leftIndex = SolutionMapping.getIndice() - 1;  // Índice del lado izquierdo
+        int leftIndex = SolutionMapping.getIndice() - 1;
 
         right.visit(this);
-        int rightIndex = SolutionMapping.getIndice() - 1;  // Índice del lado derecho
+        int rightIndex = SolutionMapping.getIndice() - 1;
 
-        // Generar el índice para el resultado de la operación
+        // Logging de variables
+        logProgress("Left variables: " + SolutionMapping.getSolutionMapping().get(leftIndex));
+        logProgress("Right variables: " + SolutionMapping.getSolutionMapping().get(rightIndex));
+
         int joinIndex = SolutionMapping.getIndice();
-        ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex); // Llaves para la unión
+        ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
+
+        // Si no hay keys comunes en un join normal, podría ser un error
+        if (keys.isEmpty() && operatorClass.equals("Join")) {
+            logProgress("Warning: No common variables found for join operation");
+        }
+
         String keyString = JoinKeys.keys(keys);
 
         flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
@@ -187,19 +266,28 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                 .append(operation)
                 .append("(sm")
                 .append(rightIndex)
-                .append(")\n\t\t\t.where(new JoinKeySelector(new String[]{")
-                .append(keyString)
-                .append("}))\n\t\t\t.equalTo(new JoinKeySelector(new String[]{")
-                .append(keyString)
-                .append("}))\n\t\t\t.with(new ")
+                .append(")\n");
+
+        // Solo añadir where/equalTo si hay keys
+        if (!keys.isEmpty()) {
+            flinkProgram.append("\t\t\t.where(new JoinKeySelector(new String[]{")
+                    .append(keyString)
+                    .append("}))\n\t\t\t.equalTo(new JoinKeySelector(new String[]{")
+                    .append(keyString)
+                    .append("}))\n");
+        }
+
+        flinkProgram.append("\t\t\t.with(new ")
                 .append(operatorClass)
                 .append("());\n\n");
 
-        // Actualizar el mapeo de variables para la nueva solución
         SolutionMapping.join(joinIndex, leftIndex, rightIndex);
     }
 
-
+    private void logProgress(String message) {
+        System.out.println("[DEBUG] " + message);
+    }
+    
     public static String getFlinkProgram() {
         return flinkProgram.toString();
     }
