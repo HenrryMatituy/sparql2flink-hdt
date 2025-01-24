@@ -191,10 +191,8 @@ public class Query {
 				}
 			});
 
-		DataSet<SolutionMappingHDT> sm14 = sm12.leftOuterJoin(sm13)
-			.where(new JoinKeySelector(new String[]{}))
-			.equalTo(new JoinKeySelector(new String[]{}))
-			.with(new LeftJoin());
+		DataSet<SolutionMappingHDT> sm14 = sm12.cross(sm13)
+			.with(new Cross());
 
 		DataSet<SolutionMappingHDT> sm15 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyTextual5", null))
@@ -207,10 +205,8 @@ public class Query {
 				}
 			});
 
-		DataSet<SolutionMappingHDT> sm16 = sm14.leftOuterJoin(sm15)
-			.where(new JoinKeySelector(new String[]{}))
-			.equalTo(new JoinKeySelector(new String[]{}))
-			.with(new LeftJoin());
+		DataSet<SolutionMappingHDT> sm16 = sm14.cross(sm15)
+			.with(new Cross());
 
 		DataSet<SolutionMappingHDT> sm17 = dataset
 			.filter(new Triple2Triple(serializableDictionary, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product14", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric4", null))
@@ -223,10 +219,8 @@ public class Query {
 				}
 			});
 
-		DataSet<SolutionMappingHDT> sm18 = sm16.leftOuterJoin(sm17)
-			.where(new JoinKeySelector(new String[]{}))
-			.equalTo(new JoinKeySelector(new String[]{}))
-			.with(new LeftJoin());
+		DataSet<SolutionMappingHDT> sm18 = sm16.cross(sm17)
+			.with(new Cross());
 
 		DataSet<SolutionMappingHDT> sm19 = sm18
 			.map(new Project(new String[]{"?label", "?comment", "?producer", "?productFeature", "?propertyTextual1", "?propertyTextual2", "?propertyTextual3", "?propertyNumeric1", "?propertyNumeric2", "?propertyTextual4", "?propertyTextual5", "?propertyNumeric4"}));

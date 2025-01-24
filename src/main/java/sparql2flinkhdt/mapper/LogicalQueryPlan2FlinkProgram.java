@@ -61,6 +61,10 @@ public class LogicalQueryPlan2FlinkProgram {
                 .append("\t\tDataSet<TripleID> dataset = env.fromCollection(listTripleID);\n\n")
                 .append("\t\t// ************ Applying Transformations ************\n");
 
+        System.out.println("Logical Query Plannn:");
+        System.out.println(logicalQueryPlan.toString());
+
+
         // Visit Logical Query Plan and append transformations to the program
         logicalQueryPlan.visit(new ConvertLQP2FlinkProgram());
         flinkProgram.append(ConvertLQP2FlinkProgram.getFlinkProgram());
