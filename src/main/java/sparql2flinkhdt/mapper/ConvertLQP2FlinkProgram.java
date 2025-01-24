@@ -56,7 +56,6 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
             indice++;
         }
     }
-
     @Override
     public void visit(OpJoin opJoin) {
         opJoin.getLeft().visit(this);
@@ -81,7 +80,6 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         SolutionMapping.join(joinIndex, leftIndex, rightIndex);
     }
-
     @Override
     public void visit(OpLeftJoin opLeftJoin) {
         opLeftJoin.getLeft().visit(this);
@@ -100,12 +98,17 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                     "\t\t\t.equalTo(new JoinKeySelector(new String[]{" + keys + "}))\n" +
                     "\t\t\t.with(new LeftJoin());\n\n";
         } else {
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + joinIndex + " = sm" + leftIndex + ".cross(sm" + rightIndex + ")\n" +
-                    "\t\t\t.with(new Cross());\n\n";
+            // Para OPTIONAL sin variables compartidas, usamos cross
+            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + joinIndex + " = sm" + leftIndex + ".leftOuterJoin(sm" + rightIndex + ")\n" +
+                    "\t\t\t.where(\"*\")\n" +
+                    "\t\t\t.equalTo(\"*\")\n" +
+                    "\t\t\t.with(new LeftJoin());\n\n";
         }
 
+        // Actualizar el mapa de soluciones
         SolutionMapping.join(joinIndex, leftIndex, rightIndex);
 
+        // Manejar expresiones de filtro si existen
         if(opLeftJoin.getExprs() != null) {
             handleExprList(opLeftJoin.getExprs());
         }
@@ -113,11 +116,12 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
     private void handleExprList(ExprList exprList) {
         for (Expr expression : exprList) {
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + SolutionMapping.getIndice() + " = sm" + (SolutionMapping.getIndice()-1) + "\n" +
+            int currentIndex = SolutionMapping.getIndice();
+            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + currentIndex + " = sm" + (currentIndex-1) + "\n" +
                     "\t\t\t.filter(new Filter(serializableDictionary, \"" + FilterConvert.convert(expression) + "\"));\n\n";
 
-            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
-            SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
+            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(currentIndex-1);
+            SolutionMapping.insertSolutionMapping(currentIndex, variables);
         }
     }
 
