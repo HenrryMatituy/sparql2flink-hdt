@@ -16,12 +16,11 @@ public class LogicalQueryPlan2FlinkProgram {
     private String capitalizeFirstLetter(String text) {
         return text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
     }
-
     public String logicalQueryPlan2FlinkProgram() {
         StringBuilder flinkProgram = new StringBuilder();
 
+        // Cabecera del programa
         flinkProgram.append("package sparql2flinkhdt.out;\n\n")
-                // Add the imports for the generated code
                 .append("import com.esotericsoftware.kryo.serializers.JavaSerializer;\n")
                 .append("import org.apache.flink.api.common.functions.MapFunction;\n")
                 .append("import org.apache.flink.api.java.DataSet;\n")
@@ -44,7 +43,6 @@ public class LogicalQueryPlan2FlinkProgram {
                 .append("\t\tif (!params.has(\"dataset\") || !params.has(\"output\")) {\n")
                 .append("\t\t\tSystem.out.println(\"Use --dataset and --output to specify paths.\");\n")
                 .append("\t\t\treturn;\n\t\t}\n\n")
-                // Add Kryo configuration for the generated code
                 .append("\t\t// ************ Initialize Environment and Load Data ************\n")
                 .append("\t\tfinal ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();\n")
                 .append("\t\tenv.getConfig().registerTypeWithKryoSerializer(Node_Literal.class, JavaSerializer.class);\n")
@@ -77,4 +75,5 @@ public class LogicalQueryPlan2FlinkProgram {
 
         return flinkProgram.toString();
     }
+
 }

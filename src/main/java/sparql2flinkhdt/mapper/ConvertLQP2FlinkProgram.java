@@ -43,12 +43,12 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                     .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
                     .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n");
 
-            if (subjectMapping != "null") {
+            if (!subjectMapping.equals("null")) {
                 flinkProgram.append("\t\t\t\t\tsm.putMapping(")
                         .append(subjectMapping)
                         .append(", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n");
             }
-            if (objectMapping != "null") {
+            if (!objectMapping.equals("null")) {
                 flinkProgram.append("\t\t\t\t\tsm.putMapping(")
                         .append(objectMapping)
                         .append(", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n");
@@ -75,11 +75,34 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
     @Override
     public void visit(OpLeftJoin opLeftJoin) {
-        processBinaryOp(opLeftJoin.getLeft(), opLeftJoin.getRight(), "leftOuterJoin", "LeftJoin");
-        if (opLeftJoin.getExprs() != null) {
-            visit(opLeftJoin.getExprs());
-        }
+        // Procesar la parte izquierda del LEFT JOIN
+        opLeftJoin.getLeft().visit(this);
+        int leftIndex = SolutionMapping.getIndice() - 1;
+
+        // Procesar la parte derecha del LEFT JOIN
+        opLeftJoin.getRight().visit(this);
+        int rightIndex = SolutionMapping.getIndice() - 1;
+
+        // Generar el código para el LEFT JOIN
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                .append(SolutionMapping.getIndice())
+                .append(" = sm")
+                .append(leftIndex)
+                .append(".leftOuterJoin(sm")
+                .append(rightIndex)
+                .append(")\n")
+                .append("\t\t\t.where(new JoinKeySelector(new String[]{")
+                .append(JoinKeys.keys(SolutionMapping.getKey(leftIndex, rightIndex)))
+                .append("}))\n")
+                .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{")
+                .append(JoinKeys.keys(SolutionMapping.getKey(leftIndex, rightIndex)))
+                .append("}))\n")
+                .append("\t\t\t.with(new LeftJoin());\n\n");
+
+        // Actualizar el índice y las variables
+        SolutionMapping.join(SolutionMapping.getIndice(), leftIndex, rightIndex);
     }
+
 
     @Override
     public void visit(OpUnion opUnion) {
@@ -203,7 +226,6 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice() - 1);
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
-
     private void processBinaryOp(Op left, Op right, String operation, String operatorClass) {
         left.visit(this);
         int leftIndex = SolutionMapping.getIndice() - 1;
@@ -233,6 +255,7 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         SolutionMapping.join(joinIndex, leftIndex, rightIndex);
     }
+
 
     public static String getFlinkProgram() {
         return flinkProgram.toString();
