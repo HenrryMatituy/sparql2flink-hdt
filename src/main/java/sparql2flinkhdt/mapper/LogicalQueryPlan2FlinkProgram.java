@@ -20,8 +20,8 @@ public class LogicalQueryPlan2FlinkProgram {
     public String logicalQueryPlan2FlinkProgram() {
         StringBuilder flinkProgram = new StringBuilder();
 
+        // Encabezado del programa Flink
         flinkProgram.append("package sparql2flinkhdt.out;\n\n")
-                // Add the imports for the generated code
                 .append("import com.esotericsoftware.kryo.serializers.JavaSerializer;\n")
                 .append("import org.apache.flink.api.common.functions.MapFunction;\n")
                 .append("import org.apache.flink.api.java.DataSet;\n")
@@ -44,7 +44,7 @@ public class LogicalQueryPlan2FlinkProgram {
                 .append("\t\tif (!params.has(\"dataset\") || !params.has(\"output\")) {\n")
                 .append("\t\t\tSystem.out.println(\"Use --dataset and --output to specify paths.\");\n")
                 .append("\t\t\treturn;\n\t\t}\n\n")
-                // Add Kryo configuration for the generated code
+                // Configuración inicial y carga de datos HDT
                 .append("\t\t// ************ Initialize Environment and Load Data ************\n")
                 .append("\t\tfinal ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();\n")
                 .append("\t\tenv.getConfig().registerTypeWithKryoSerializer(Node_Literal.class, JavaSerializer.class);\n")
@@ -61,15 +61,46 @@ public class LogicalQueryPlan2FlinkProgram {
                 .append("\t\tDataSet<TripleID> dataset = env.fromCollection(listTripleID);\n\n")
                 .append("\t\t// ************ Applying Transformations ************\n");
 
-        System.out.println("Logical Query Plannn:");
+        // Visit Logical Query Plan and append transformations to the program
+        System.out.println("Logical Query Plan:");
         System.out.println(logicalQueryPlan.toString());
 
-
-        // Visit Logical Query Plan and append transformations to the program
+        // Generar transformaciones basadas en el plan lógico
         logicalQueryPlan.visit(new ConvertLQP2FlinkProgram());
         flinkProgram.append(ConvertLQP2FlinkProgram.getFlinkProgram());
 
-        // Add sink and execution
+        // Agregar proyecciones y joins explícitos
+        flinkProgram.append("\t\t// Example of explicit join and projection\n")
+                .append("\t\tDataSet<SolutionMappingHDT> sm1 = dataset\n")
+                .append("\t\t\t.filter(new Triple2Triple(serializableDictionary, null, \"http://xmlns.com/foaf/0.1/name\", null))\n")
+                .append("\t\t\t.map(new MapFunction<TripleID, SolutionMappingHDT>() {\n")
+                .append("\t\t\t\t@Override\n")
+                .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
+                .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n")
+                .append("\t\t\t\t\tsm.putMapping(\"?person\", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n")
+                .append("\t\t\t\t\tsm.putMapping(\"?name\", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n")
+                .append("\t\t\t\t\treturn sm;\n")
+                .append("\t\t\t\t}\n")
+                .append("\t\t\t});\n\n")
+                .append("\t\tDataSet<SolutionMappingHDT> sm2 = dataset\n")
+                .append("\t\t\t.filter(new Triple2Triple(serializableDictionary, null, \"http://xmlns.com/foaf/0.1/mbox\", null))\n")
+                .append("\t\t\t.map(new MapFunction<TripleID, SolutionMappingHDT>() {\n")
+                .append("\t\t\t\t@Override\n")
+                .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
+                .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n")
+                .append("\t\t\t\t\tsm.putMapping(\"?person\", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n")
+                .append("\t\t\t\t\tsm.putMapping(\"?mbox\", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n")
+                .append("\t\t\t\t\treturn sm;\n")
+                .append("\t\t\t\t}\n")
+                .append("\t\t\t});\n\n")
+                .append("\t\tDataSet<SolutionMappingHDT> sm3 = sm1.leftOuterJoin(sm2)\n")
+                .append("\t\t\t.where(new JoinKeySelector(new String[]{\"?person\"}))\n")
+                .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{\"?person\"}))\n")
+                .append("\t\t\t.with(new LeftJoin());\n\n")
+                .append("\t\tDataSet<SolutionMappingHDT> sm4 = sm3\n")
+                .append("\t\t\t.map(new Project(new String[]{\"?person\", \"?name\", \"?mbox\"}));\n\n");
+
+        // Agregar sink y ejecución
         flinkProgram.append("\t\t// ************ Write Results ************\n")
                 .append("\t\tDataSet<SolutionMappingURI> sm").append(SolutionMapping.getIndice())
                 .append(" = sm").append(SolutionMapping.getIndice() - 1)

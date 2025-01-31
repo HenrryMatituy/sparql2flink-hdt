@@ -80,51 +80,53 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         SolutionMapping.join(joinIndex, leftIndex, rightIndex);
     }
-    @Override
-    public void visit(OpLeftJoin opLeftJoin) {
-        opLeftJoin.getLeft().visit(this);
-        int leftIndex = SolutionMapping.getIndice()-1;
+//    @Override
+//    public void visit(OpLeftJoin opLeftJoin) {
+//        opLeftJoin.getLeft().visit(this);
+//        int leftIndex = SolutionMapping.getIndice()-1;
+//
+//        opLeftJoin.getRight().visit(this);
+//        int rightIndex = SolutionMapping.getIndice()-1;
+//
+//        int joinIndex = SolutionMapping.getIndice();
+//        ArrayList<String> listKeys = SolutionMapping.getKey(leftIndex, rightIndex);
+//
+//        if(listKeys.size() > 0) {
+//            String keys = JoinKeys.keys(listKeys);
+//            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + joinIndex + " = sm" + leftIndex + ".leftOuterJoin(sm" + rightIndex + ")\n" +
+//                    "\t\t\t.where(new JoinKeySelector(new String[]{" + keys + "}))\n" +
+//                    "\t\t\t.equalTo(new JoinKeySelector(new String[]{" + keys + "}))\n" +
+//                    "\t\t\t.with(new LeftJoin());\n\n";
+//        } else {
+//            // Para OPTIONAL sin variables compartidas, usamos cross
+//            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + joinIndex + " = sm" + leftIndex + ".leftOuterJoin(sm" + rightIndex + ")\n" +
+//                    "\t\t\t.where(\"*\")\n" +
+//                    "\t\t\t.equalTo(\"*\")\n" +
+//                    "\t\t\t.with(new LeftJoin());\n\n";
+//        }
+//
+//        // Actualizar el mapa de soluciones
+//        SolutionMapping.join(joinIndex, leftIndex, rightIndex);
+//
+//        // Manejar expresiones de filtro si existen
+//        if(opLeftJoin.getExprs() != null) {
+//            handleExprList(opLeftJoin.getExprs());
+//        }
+//    }
+//
+//    private void handleExprList(ExprList exprList) {
+//        for (Expr expression : exprList) {
+//            int currentIndex = SolutionMapping.getIndice();
+//            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + currentIndex + " = sm" + (currentIndex-1) + "\n" +
+//                    "\t\t\t.filter(new Filter(serializableDictionary, \"" + FilterConvert.convert(expression) + "\"));\n\n";
+//
+//            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(currentIndex-1);
+//            SolutionMapping.insertSolutionMapping(currentIndex, variables);
+//        }
+//    }
 
-        opLeftJoin.getRight().visit(this);
-        int rightIndex = SolutionMapping.getIndice()-1;
 
-        int joinIndex = SolutionMapping.getIndice();
-        ArrayList<String> listKeys = SolutionMapping.getKey(leftIndex, rightIndex);
-
-        if(listKeys.size() > 0) {
-            String keys = JoinKeys.keys(listKeys);
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + joinIndex + " = sm" + leftIndex + ".leftOuterJoin(sm" + rightIndex + ")\n" +
-                    "\t\t\t.where(new JoinKeySelector(new String[]{" + keys + "}))\n" +
-                    "\t\t\t.equalTo(new JoinKeySelector(new String[]{" + keys + "}))\n" +
-                    "\t\t\t.with(new LeftJoin());\n\n";
-        } else {
-            // Para OPTIONAL sin variables compartidas, usamos cross
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + joinIndex + " = sm" + leftIndex + ".leftOuterJoin(sm" + rightIndex + ")\n" +
-                    "\t\t\t.where(\"*\")\n" +
-                    "\t\t\t.equalTo(\"*\")\n" +
-                    "\t\t\t.with(new LeftJoin());\n\n";
-        }
-
-        // Actualizar el mapa de soluciones
-        SolutionMapping.join(joinIndex, leftIndex, rightIndex);
-
-        // Manejar expresiones de filtro si existen
-        if(opLeftJoin.getExprs() != null) {
-            handleExprList(opLeftJoin.getExprs());
-        }
-    }
-
-    private void handleExprList(ExprList exprList) {
-        for (Expr expression : exprList) {
-            int currentIndex = SolutionMapping.getIndice();
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + currentIndex + " = sm" + (currentIndex-1) + "\n" +
-                    "\t\t\t.filter(new Filter(serializableDictionary, \"" + FilterConvert.convert(expression) + "\"));\n\n";
-
-            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(currentIndex-1);
-            SolutionMapping.insertSolutionMapping(currentIndex, variables);
-        }
-    }
-
+    
     @Override
     public void visit(OpFilter opFilter) {
         ExprList exprList = opFilter.getExprs();
