@@ -134,7 +134,9 @@ public class SolutionMappingHDT implements Serializable {
         }
         return sm.toString();
     }
-
+    public MappingValue getValue(String var) {
+        return mapping.get(var);
+    }
     // Método para aplicar un filtro basado en una expresión SPARQL
     public boolean filter(String expression) {
         try {

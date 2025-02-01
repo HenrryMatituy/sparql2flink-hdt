@@ -36,6 +36,8 @@ public class LogicalQueryPlan2FlinkProgram {
                 .append("import sparql2flinkhdt.runner.SerializableDictionary;\n")
                 .append("import sparql2flinkhdt.runner.LoadTriples;\n")
                 .append("import sparql2flinkhdt.runner.functions.*;\n")
+                .append("import org.apache.flink.api.common.operators.Order.;\n")
+                .append("import sparql2flinkhdt.runner.functions.order.OrderKeySelector.;\n")
                 .append("import java.util.ArrayList;\n\n")
                 .append("public class ").append(className).append(" {\n")
                 .append("\tpublic static void main(String[] args) throws Exception {\n\n")
