@@ -9,7 +9,7 @@ import org.apache.jena.sparql.expr.*;
 import org.apache.jena.sparql.function.FunctionEnvBase;
 import org.apache.jena.sparql.sse.SSE;
 import sparql2flinkhdt.runner.SerializableDictionary;
-import org.rdfhdt.hdt.enums.TripleComponentRole;  // Asegúrate de importar la clase correcta
+import org.rdfhdt.hdt.enums.TripleComponentRole;  // Importar TripleComponentRole
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,9 +25,9 @@ public class SolutionMappingHDT implements Serializable {
     public static class MappingValue implements Serializable {
         private static final long serialVersionUID = 1L;
         private Long id;
-        private Integer role;
+        private Integer role;  // Volver a usar Integer para el campo role
 
-        public MappingValue(Long id, Integer role) {
+        public MappingValue(Long id, Integer role) {  // Volver a usar Integer para el parámetro
             this.id = id;
             this.role = role;
         }
@@ -36,7 +36,7 @@ public class SolutionMappingHDT implements Serializable {
             return id;
         }
 
-        public Integer getRole() {
+        public Integer getRole() {  // Volver a devolver Integer
             return role;
         }
 
@@ -83,6 +83,15 @@ public class SolutionMappingHDT implements Serializable {
         }
     }
 
+    /**
+     * Obtiene el valor de una variable específica.
+     *
+     * @param var El nombre de la variable (por ejemplo, "?label").
+     * @return El MappingValue asociado a la variable, o null si no existe.
+     */
+    public MappingValue getValue(String var) {
+        return mapping.get(var);
+    }
 
     public SolutionMappingHDT join(SolutionMappingHDT sm) {
         SolutionMappingHDT result = new SolutionMappingHDT(this.serializableDictionary);
@@ -134,9 +143,7 @@ public class SolutionMappingHDT implements Serializable {
         }
         return sm.toString();
     }
-    public MappingValue getValue(String var) {
-        return mapping.get(var);
-    }
+
     // Método para aplicar un filtro basado en una expresión SPARQL
     public boolean filter(String expression) {
         try {
@@ -168,7 +175,6 @@ public class SolutionMappingHDT implements Serializable {
             return false;
         }
     }
-
 
     // Crear una nueva instancia de SolutionMappingHDT solo con las variables especificadas
     public SolutionMappingHDT newSolutionMapping(String[] vars) {
