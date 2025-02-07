@@ -48,23 +48,60 @@ public class Query {
 		// ************ Applying Transformations ************
 		DataSet<SolutionMappingHDT> sm1 = dataset
 			.filter(new Triple2Triple(serializableDictionary, null, "http://www.w3.org/2000/01/rdf-schema#label", null))
-			.map(new Triple2SolutionMapping("?product", "?label"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?product", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+					sm.putMapping("?label", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm2 = dataset
 			.filter(new Triple2Triple(serializableDictionary, null, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductType11"))
-			.map(new Triple2SolutionMapping("?product", null));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?product", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm3 = dataset
 			.filter(new Triple2Triple(serializableDictionary, null, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productFeature", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductFeature40"))
-			.map(new Triple2SolutionMapping("?product", null));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?product", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm4 = dataset
 			.filter(new Triple2Triple(serializableDictionary, null, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productFeature", "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/ProductFeature417"))
-			.map(new Triple2SolutionMapping("?product", null));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?product", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm5 = dataset
 			.filter(new Triple2Triple(serializableDictionary, null, "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productPropertyNumeric1", null))
-			.map(new Triple2SolutionMapping("?product", "?value1"));
+			.map(new MapFunction<TripleID, SolutionMappingHDT>() {
+				@Override
+				public SolutionMappingHDT map(TripleID t) {
+					SolutionMappingHDT sm = new SolutionMappingHDT();
+					sm.putMapping("?product", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));
+					sm.putMapping("?value1", new SolutionMappingHDT.MappingValue(t.getObject(), 3));
+					return sm;
+				}
+			});
 
 		DataSet<SolutionMappingHDT> sm6 = sm5
 			.filter(new Filter(serializableDictionary, "(> ?value1 10)"));
