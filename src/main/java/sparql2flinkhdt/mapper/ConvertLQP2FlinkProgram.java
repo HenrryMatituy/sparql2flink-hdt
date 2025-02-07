@@ -38,9 +38,25 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                     .append(subjectFilter).append(", ")
                     .append(predicateFilter).append(", ")
                     .append(objectFilter).append("))\n")
-                    .append("\t\t\t.map(new Triple2SolutionMapping(")
-                    .append(subjectMapping).append(", ")
-                    .append(objectMapping).append("));\n\n");
+                    .append("\t\t\t.map(new MapFunction<TripleID, SolutionMappingHDT>() {\n")
+                    .append("\t\t\t\t@Override\n")
+                    .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
+                    .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n");
+
+            if (!subjectMapping.equals("null")) {
+                flinkProgram.append("\t\t\t\t\tsm.putMapping(")
+                        .append(subjectMapping)
+                        .append(", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n");
+            }
+            if (!objectMapping.equals("null")) {
+                flinkProgram.append("\t\t\t\t\tsm.putMapping(")
+                        .append(objectMapping)
+                        .append(", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n");
+            }
+
+            flinkProgram.append("\t\t\t\t\treturn sm;\n")
+                    .append("\t\t\t\t}\n")
+                    .append("\t\t\t});\n\n");
 
             ArrayList<String> variables = new ArrayList<>();
             if (!subjectMapping.equals("null")) variables.add(subjectMapping);
@@ -50,6 +66,7 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
             indice++;
         }
     }
+
 
 
     @Override
@@ -149,7 +166,6 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
-
     @Override
     public void visit(OpOrder opOrder) {
         List<SortCondition> sortConditions = opOrder.getConditions();
@@ -158,12 +174,14 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         opOrder.getSubOp().visit(this);
 
         Expr expression = sortConditions.get(0).getExpression();
+        String variable = expression.toString(); // Obtén la variable por la cual se ordenará
+
         flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
                 .append(SolutionMapping.getIndice())
                 .append(" = sm")
                 .append(SolutionMapping.getIndice() - 1)
                 .append("\n\t\t\t.sortPartition(new OrderKeySelector(serializableDictionary, \"")
-                .append(expression)
+                .append(variable)
                 .append("\"), ")
                 .append(order)
                 .append(").setParallelism(1);\n\n");
@@ -171,6 +189,29 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice() - 1);
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
+
+
+//    @Override
+//    public void visit(OpOrder opOrder) {
+//        List<SortCondition> sortConditions = opOrder.getConditions();
+//        String order = (sortConditions.get(0).getDirection() == -2) ? "Order.ASCENDING" : "Order.DESCENDING";
+//
+//        opOrder.getSubOp().visit(this);
+//
+//        Expr expression = sortConditions.get(0).getExpression();
+//        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+//                .append(SolutionMapping.getIndice())
+//                .append(" = sm")
+//                .append(SolutionMapping.getIndice() - 1)
+//                .append("\n\t\t\t.sortPartition(new OrderKeySelector(serializableDictionary, \"")
+//                .append(expression)
+//                .append("\"), ")
+//                .append(order)
+//                .append(").setParallelism(1);\n\n");
+//
+//        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice() - 1);
+//        SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
+//    }
 
     @Override
     public void visit(OpSlice opSlice) {
