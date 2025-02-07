@@ -38,25 +38,9 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                     .append(subjectFilter).append(", ")
                     .append(predicateFilter).append(", ")
                     .append(objectFilter).append("))\n")
-                    .append("\t\t\t.map(new MapFunction<TripleID, SolutionMappingHDT>() {\n")
-                    .append("\t\t\t\t@Override\n")
-                    .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
-                    .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n");
-
-            if (subjectMapping != "null") {
-                flinkProgram.append("\t\t\t\t\tsm.putMapping(")
-                        .append(subjectMapping)
-                        .append(", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n");
-            }
-            if (objectMapping != "null") {
-                flinkProgram.append("\t\t\t\t\tsm.putMapping(")
-                        .append(objectMapping)
-                        .append(", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n");
-            }
-
-            flinkProgram.append("\t\t\t\t\treturn sm;\n")
-                    .append("\t\t\t\t}\n")
-                    .append("\t\t\t});\n\n");
+                    .append("\t\t\t.map(new Triple2SolutionMapping(")
+                    .append(subjectMapping).append(", ")
+                    .append(objectMapping).append("));\n\n");
 
             ArrayList<String> variables = new ArrayList<>();
             if (!subjectMapping.equals("null")) variables.add(subjectMapping);
