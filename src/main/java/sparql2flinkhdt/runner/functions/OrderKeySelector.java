@@ -7,8 +7,8 @@ import org.rdfhdt.hdt.enums.TripleComponentRole;
 
 public class OrderKeySelector implements KeySelector<SolutionMappingHDT, String> {
 
-	private Dictionary dictionary;  // Diccionario HDT para convertir IDs a strings
-	private String key;  // La clave (variable SPARQL) por la cual se ordenará
+	private Dictionary dictionary;
+	private String key;
 
 	public OrderKeySelector(Dictionary dictionary, String key) {
 		this.dictionary = dictionary;
@@ -22,10 +22,29 @@ public class OrderKeySelector implements KeySelector<SolutionMappingHDT, String>
 
 		if (mappingValue != null) {
 			// Convertir el valor a una cadena utilizando el diccionario HDT
-			return dictionary.idToString(mappingValue.getId(), mappingValue.getRole()).toString();
+			TripleComponentRole role = getRoleFromCode(mappingValue.getRole());
+			return dictionary.idToString(mappingValue.getId(), role).toString();
 		} else {
 			// Si no hay valor asociado, devolver una cadena vacía
 			return "";
+		}
+	}
+
+	// Método para convertir un código numérico a TripleComponentRole
+	private TripleComponentRole getRoleFromCode(Integer roleCode) {
+		if (roleCode == null) {
+			throw new IllegalArgumentException("Role code cannot be null");
+		}
+
+		switch (roleCode) {
+			case 1:
+				return TripleComponentRole.SUBJECT;
+			case 2:
+				return TripleComponentRole.PREDICATE;
+			case 3:
+				return TripleComponentRole.OBJECT;
+			default:
+				throw new IllegalArgumentException("Unknown role code: " + roleCode);
 		}
 	}
 }
