@@ -33,35 +33,14 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
             String subjectMapping = triple.getSubject().isVariable() ? "\"" + triple.getSubject().toString() + "\"" : "null";
             String objectMapping = triple.getObject().isVariable() ? "\"" + triple.getObject().toString() + "\"" : "null";
 
-            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(indice).append(" = ");
-            if (indice == 0) {
-                flinkProgram.append("dataset\n"); // Primera transformación: usa el dataset original
-            } else {
-                flinkProgram.append("sm").append(indice - 1).append("\n"); // Transformaciones posteriores: usa el resultado anterior
-            }
-            flinkProgram.append("\t\t\t.filter(new Triple2Triple(serializableDictionary, ")
+            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(indice).append(" = dataset\n")
+                    .append("\t\t\t.filter(new Triple2Triple(serializableDictionary, ")
                     .append(subjectFilter).append(", ")
                     .append(predicateFilter).append(", ")
                     .append(objectFilter).append("))\n")
-                    .append("\t\t\t.map(new MapFunction<TripleID, SolutionMappingHDT>() {\n")
-                    .append("\t\t\t\t@Override\n")
-                    .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
-                    .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n");
-
-            if (!subjectMapping.equals("null")) {
-                flinkProgram.append("\t\t\t\t\tsm.putMapping(")
-                        .append(subjectMapping)
-                        .append(", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n");
-            }
-            if (!objectMapping.equals("null")) {
-                flinkProgram.append("\t\t\t\t\tsm.putMapping(")
-                        .append(objectMapping)
-                        .append(", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n");
-            }
-
-            flinkProgram.append("\t\t\t\t\treturn sm;\n")
-                    .append("\t\t\t\t}\n")
-                    .append("\t\t\t});\n\n");
+                    .append("\t\t\t.map(new Triple2SolutionMapping(")
+                    .append(subjectMapping).append(", null, ")
+                    .append(objectMapping).append("));\n\n");
 
             ArrayList<String> variables = new ArrayList<>();
             if (!subjectMapping.equals("null")) variables.add(subjectMapping);
@@ -79,24 +58,9 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
     @Override
     public void visit(OpLeftJoin opLeftJoin) {
-        // Procesa la unión izquierda
         processBinaryOp(opLeftJoin.getLeft(), opLeftJoin.getRight(), "leftOuterJoin", "LeftJoin");
-
-        // Procesa las expresiones de filtrado (si existen)
         if (opLeftJoin.getExprs() != null) {
-            for (Expr expression : opLeftJoin.getExprs()) {
-                flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
-                        .append(SolutionMapping.getIndice())
-                        .append(" = sm")
-                        .append(SolutionMapping.getIndice() - 1)
-                        .append("\n\t\t\t.filter(new Filter(serializableDictionary, \"")
-                        .append(FilterConvert.convert(expression)) // Convierte la expresión SPARQL a un formato compatible
-                        .append("\"));\n\n");
-
-                // Actualiza el índice de SolutionMapping
-                ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice() - 1);
-                SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
-            }
+            visit(opLeftJoin.getExprs());
         }
     }
 
@@ -135,14 +99,28 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
     @Override
     public void visit(OpFilter opFilter) {
-        opFilter.getSubOp().visit(this); // Procesa la suboperación primero
         ExprList exprList = opFilter.getExprs();
-
+        opFilter.getSubOp().visit(this);
         for (Expr expression : exprList) {
             flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
                     .append(SolutionMapping.getIndice())
                     .append(" = sm")
-                    .append(SolutionMapping.getIndice() - 1) // Usa el resultado de la transformación anterior
+                    .append(SolutionMapping.getIndice() - 1)
+                    .append("\n\t\t\t.filter(new Filter(serializableDictionary, \"")
+                    .append(FilterConvert.convert(expression))
+                    .append("\"));\n\n");
+
+            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice() - 1);
+            SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
+        }
+    }
+
+    public void visit(ExprList exprList) {
+        for (Expr expression : exprList) {
+            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                    .append(SolutionMapping.getIndice())
+                    .append(" = sm")
+                    .append(SolutionMapping.getIndice() - 1)
                     .append("\n\t\t\t.filter(new Filter(serializableDictionary, \"")
                     .append(FilterConvert.convert(expression))
                     .append("\"));\n\n");
@@ -157,6 +135,7 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         opDistinct.getSubOp().visit(this);
 
         ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice() - 1);
+
         String varsDistinct = String.join(", ", variables);
 
         flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
@@ -174,18 +153,17 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
     public void visit(OpOrder opOrder) {
         List<SortCondition> sortConditions = opOrder.getConditions();
         String order = (sortConditions.get(0).getDirection() == -2) ? "Order.ASCENDING" : "Order.DESCENDING";
+        String varName = sortConditions.get(0).getExpression().toString();
 
         opOrder.getSubOp().visit(this);
 
-        Expr expression = sortConditions.get(0).getExpression();
-        String variable = expression.toString(); // Obtén la variable por la cual se ordenará
-
+        // Añadimos una lógica más simple para ORDER BY, asumiendo que ?label es un string por ahora
         flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
                 .append(SolutionMapping.getIndice())
                 .append(" = sm")
                 .append(SolutionMapping.getIndice() - 1)
-                .append("\n\t\t\t.sortPartition(new OrderKeySelector(serializableDictionary, \"")
-                .append(variable)
+                .append("\n\t\t\t.sortPartition(new OrderKeySelector_String(serializableDictionary, \"")
+                .append(varName)
                 .append("\"), ")
                 .append(order)
                 .append(").setParallelism(1);\n\n");
