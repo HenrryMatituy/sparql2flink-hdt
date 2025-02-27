@@ -39,8 +39,11 @@ public class Filter implements FilterFunction<SolutionMappingHDT> {
             return false;  // Si la variable no existe, no se cumple el filtro
         }
 
+        // Convertir el rol de Integer a TripleComponentRole
+        TripleComponentRole role = intToTripleComponentRole(mappingValue.getRole());
+
         // Obtener el valor real desde el diccionario HDT
-        String variableValueStr = dictionary.idToString(mappingValue.getId(), mappingValue.getRole());
+        String variableValueStr = dictionary.idToString(mappingValue.getId(), role);
 
         // Intentar comparar como números
         try {
@@ -90,6 +93,7 @@ public class Filter implements FilterFunction<SolutionMappingHDT> {
         }
         return Double.parseDouble(valueStr);
     }
+
     /**
      * Convierte un entero a un TripleComponentRole.
      *
