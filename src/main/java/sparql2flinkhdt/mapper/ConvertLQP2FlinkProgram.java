@@ -14,41 +14,80 @@ import java.util.List;
 
 public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
-    private static StringBuilder flinkProgram = new StringBuilder();
+    private static StringBuilder flinkProgram = new StringBuilder(1024); // Tamaño inicial
+    private int bgpIndex = 1;
 
     public ConvertLQP2FlinkProgram() {
         super();
+        flinkProgram.setLength(0); // Reiniciar siempre al crear una nueva instancia
     }
 
     @Override
     public void visit(OpBGP opBGP) {
         List<Triple> listTriplePatterns = opBGP.getPattern().getList();
-        int indice = SolutionMapping.getIndice();
+        int startIndex = SolutionMapping.getIndice();
+        int currentIndex = startIndex;
 
         for (Triple triple : listTriplePatterns) {
             String subjectFilter = triple.getSubject().isVariable() ? "null" : "\"" + triple.getSubject().toString() + "\"";
             String predicateFilter = triple.getPredicate().isVariable() ? "null" : "\"" + triple.getPredicate().toString() + "\"";
             String objectFilter = triple.getObject().isVariable() ? "null" : "\"" + triple.getObject().toString() + "\"";
 
-            String subjectMapping = triple.getSubject().isVariable() ? "\"" + triple.getSubject().toString() + "\"" : "null";
-            String objectMapping = triple.getObject().isVariable() ? "\"" + triple.getObject().toString() + "\"" : "null";
+            String subjectVar = triple.getSubject().isVariable() ? "\"" + triple.getSubject().toString() + "\"" : "null";
+            String objectVar = triple.getObject().isVariable() ? "\"" + triple.getObject().toString() + "\"" : "null";
 
-            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(indice).append(" = dataset\n")
+            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(currentIndex).append(" = dataset\n")
                     .append("\t\t\t.filter(new Triple2Triple(serializableDictionary, ")
-                    .append(subjectFilter).append(", ")
-                    .append(predicateFilter).append(", ")
-                    .append(objectFilter).append("))\n")
-                    .append("\t\t\t.map(new Triple2SolutionMapping(")
-                    .append(subjectMapping).append(", null, ")
-                    .append(objectMapping).append("));\n\n");
+                    .append(subjectFilter).append(", ").append(predicateFilter).append(", ").append(objectFilter).append("))\n")
+                    .append("\t\t\t.map(new MapFunction<TripleID, SolutionMappingHDT>() {\n")
+                    .append("\t\t\t\t@Override\n")
+                    .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
+                    .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n");
 
             ArrayList<String> variables = new ArrayList<>();
-            if (!subjectMapping.equals("null")) variables.add(subjectMapping);
-            if (!objectMapping.equals("null")) variables.add(objectMapping);
-            SolutionMapping.insertSolutionMapping(indice, variables);
+            if (!subjectVar.equals("null")) {
+                flinkProgram.append("\t\t\t\t\tsm.putMapping(").append(subjectVar)
+                        .append(", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n");
+                variables.add(subjectVar);
+            }
+            if (!objectVar.equals("null")) {
+                flinkProgram.append("\t\t\t\t\tsm.putMapping(").append(objectVar)
+                        .append(", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n");
+                variables.add(objectVar);
+            }
 
-            indice++;
+            flinkProgram.append("\t\t\t\t\treturn sm;\n")
+                    .append("\t\t\t\t}\n")
+                    .append("\t\t\t});\n\n");
+
+            SolutionMapping.insertSolutionMapping(currentIndex, variables);
+            currentIndex++;
         }
+
+        if (listTriplePatterns.size() > 1) {
+            int joinIndex = currentIndex;
+            int leftIndex = startIndex;
+
+            for (int i = startIndex + 1; i < currentIndex; i++) {
+                int rightIndex = i;
+                ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
+                String keyString = JoinKeys.keys(keys);
+
+                flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(joinIndex)
+                        .append(" = sm").append(leftIndex)
+                        .append(".join(sm").append(rightIndex).append(")\n")
+                        .append("\t\t\t.where(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                        .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                        .append("\t\t\t.with(new Join());\n\n");
+
+                SolutionMapping.join(joinIndex, leftIndex, rightIndex);
+                leftIndex = joinIndex;
+                joinIndex++;
+            }
+            currentIndex = joinIndex;
+        }
+
+        bgpIndex = currentIndex;
     }
 
     @Override
@@ -135,7 +174,6 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         opDistinct.getSubOp().visit(this);
 
         ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice() - 1);
-
         String varsDistinct = String.join(", ", variables);
 
         flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
@@ -157,12 +195,11 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         opOrder.getSubOp().visit(this);
 
-        // Añadimos una lógica más simple para ORDER BY, asumiendo que ?label es un string por ahora
         flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
                 .append(SolutionMapping.getIndice())
                 .append(" = sm")
                 .append(SolutionMapping.getIndice() - 1)
-                .append("\n\t\t\t.sortPartition(new OrderKeySelector_String(serializableDictionary, \"")
+                .append("\n\t\t\t.sortPartition(new OrderKeySelector(serializableDictionary, \"")
                 .append(varName)
                 .append("\"), ")
                 .append(order)
@@ -220,5 +257,9 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
     public static String getFlinkProgram() {
         return flinkProgram.toString();
+    }
+
+    public static void resetFlinkProgram() {
+        flinkProgram.setLength(0);
     }
 }
