@@ -8,9 +8,7 @@ import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
@@ -27,7 +25,9 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         List<Triple> listTriplePatterns = opBGP.getPattern().getList();
         int startIndex = SolutionMapping.getIndice();
         int currentIndex = startIndex;
+        Map<String, Integer> variableToIndex = new HashMap<>();
 
+        // Generar DataSets para cada triple pattern
         for (Triple triple : listTriplePatterns) {
             String subjectFilter = triple.getSubject().isVariable() ? "null" : "\"" + triple.getSubject().toString() + "\"";
             String predicateFilter = triple.getPredicate().isVariable() ? "null" : "\"" + triple.getPredicate().toString() + "\"";
@@ -61,9 +61,12 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                     .append("\t\t\t});\n\n");
 
             SolutionMapping.insertSolutionMapping(currentIndex, variables);
+            variableToIndex.put(triple.getSubject().toString(), currentIndex);
+            variableToIndex.put(triple.getObject().toString(), currentIndex);
             currentIndex++;
         }
 
+        // Realizar joins para patrones obligatorios
         if (listTriplePatterns.size() > 1) {
             int joinIndex = currentIndex;
             int leftIndex = startIndex;
@@ -73,11 +76,13 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                 ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
                 String keyString = JoinKeys.keys(keys);
 
+                // Si hay claves comunes, usarlas; si no, asumir unión sin clave específica (product14 como implícito)
+                String joinKeys = keys.isEmpty() ? "" : keyString;
                 flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(joinIndex)
                         .append(" = sm").append(leftIndex)
                         .append(".join(sm").append(rightIndex).append(")\n")
-                        .append("\t\t\t.where(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
-                        .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                        .append("\t\t\t.where(new JoinKeySelector(new String[]{").append(joinKeys).append("}))\n")
+                        .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{").append(joinKeys).append("}))\n")
                         .append("\t\t\t.with(new Join());\n\n");
 
                 SolutionMapping.join(joinIndex, leftIndex, rightIndex);
@@ -90,6 +95,7 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         bgpIndex = currentIndex;
     }
 
+
     @Override
     public void visit(OpJoin opJoin) {
         processBinaryOp(opJoin.getLeft(), opJoin.getRight(), "join", "Join");
@@ -97,10 +103,27 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
     @Override
     public void visit(OpLeftJoin opLeftJoin) {
-        processBinaryOp(opLeftJoin.getLeft(), opLeftJoin.getRight(), "leftOuterJoin", "LeftJoin");
-        if (opLeftJoin.getExprs() != null) {
-            visit(opLeftJoin.getExprs());
-        }
+        opLeftJoin.getLeft().visit(this);
+        int leftIndex = SolutionMapping.getIndice() - 1;
+
+        opLeftJoin.getRight().visit(this);
+        int rightIndex = SolutionMapping.getIndice() - 1;
+
+        int joinIndex = SolutionMapping.getIndice();
+        ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
+        String keyString = JoinKeys.keys(keys);
+
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                .append(joinIndex)
+                .append(" = sm")
+                .append(leftIndex)
+                .append(".leftOuterJoin(sm")
+                .append(rightIndex)
+                .append(")\n\t\t\t.where(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                .append("\t\t\t.with(new LeftJoin());\n\n");
+
+        SolutionMapping.join(joinIndex, leftIndex, rightIndex); // Usar join para mantener consistencia
     }
 
     @Override
