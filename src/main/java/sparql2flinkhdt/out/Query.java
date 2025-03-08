@@ -145,19 +145,33 @@ public class Query {
 		logWriter.println("Filtro sm10 aplicado (!=)");
 		sm10.writeAsText(params.get("output") + "sm10-result", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
 
-		// Filtro inverso para depuración
+		// Filtro inverso
 		logWriter.println("Antes de aplicar filtro sm10-inverse");
 		DataSet<SolutionMappingHDT> sm10Inverse = sm9
 				.filter(new Filter(serializableDictionary, "(== " + productId + " ?product)"));
 		logWriter.println("Filtro sm10-inverse aplicado (==)");
 		sm10Inverse.writeAsText(params.get("output") + "sm10-inverse-result", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
 
-		// Filtro con sintaxis alternativa
-		logWriter.println("Antes de aplicar filtro sm10-alt");
-		DataSet<SolutionMappingHDT> sm10Alt = sm9
+		// Filtro alternativo 1
+		logWriter.println("Antes de aplicar filtro sm10-alt1");
+		DataSet<SolutionMappingHDT> sm10Alt1 = sm9
 				.filter(new Filter(serializableDictionary, "?product != " + productId));
-		logWriter.println("Filtro sm10-alt aplicado (!= alternativo)");
-		sm10Alt.writeAsText(params.get("output") + "sm10-alt-result", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+		logWriter.println("Filtro sm10-alt1 aplicado (?product !=)");
+		sm10Alt1.writeAsText(params.get("output") + "sm10-alt1-result", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+
+		// Filtro alternativo 2 (usando <>)
+		logWriter.println("Antes de aplicar filtro sm10-alt2");
+		DataSet<SolutionMappingHDT> sm10Alt2 = sm9
+				.filter(new Filter(serializableDictionary, "(<> " + productId + " ?product)"));
+		logWriter.println("Filtro sm10-alt2 aplicado (<>)");
+		sm10Alt2.writeAsText(params.get("output") + "sm10-alt2-result", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+
+		// Filtro alternativo 3 (SPARQL-style)
+		logWriter.println("Antes de aplicar filtro sm10-alt3");
+		DataSet<SolutionMappingHDT> sm10Alt3 = sm9
+				.filter(new Filter(serializableDictionary, "?product !=" + productId));
+		logWriter.println("Filtro sm10-alt3 aplicado (!= sin espacio)");
+		sm10Alt3.writeAsText(params.get("output") + "sm10-alt3-result", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
 
 		logWriter.println("Ejecución completada");
 		logWriter.close();

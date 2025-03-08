@@ -19,6 +19,10 @@ Antes de aplicar filtro sm10
 Filtro sm10 aplicado (!=)
 Antes de aplicar filtro sm10-inverse
 Filtro sm10-inverse aplicado (==)
-Antes de aplicar filtro sm10-alt
-Filtro sm10-alt aplicado (!= alternativo)
+Antes de aplicar filtro sm10-alt1
+Filtro sm10-alt1 aplicado (?product !=)
+Antes de aplicar filtro sm10-alt2
+Filtro sm10-alt2 aplicado (<>)
+Antes de aplicar filtro sm10-alt3
+Filtro sm10-alt3 aplicado (!= sin espacio)
 Ejecución completada
