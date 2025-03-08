@@ -1,0 +1,24 @@
+Inicio del programa
+Entorno inicializado
+HDT cargado
+Diccionario serializable cargado
+Triples cargados: 78351
+Dataset creado
+sm1 creado
+sm2 creado
+sm3 creado
+sm4 creado
+sm5 creado
+sm6 creado
+sm7 creado
+sm8 creado
+sm9 creado
+Antes de obtener Product16 ID
+Product16 ID: 968
+Antes de aplicar filtro sm10
+Filtro sm10 aplicado (!=)
+Antes de aplicar filtro sm10-inverse
+Filtro sm10-inverse aplicado (==)
+Antes de aplicar filtro sm10-alt
+Filtro sm10-alt aplicado (!= alternativo)
+Ejecución completada

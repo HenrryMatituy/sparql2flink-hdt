@@ -159,23 +159,38 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
 
+
     @Override
     public void visit(OpFilter opFilter) {
-        ExprList exprList = opFilter.getExprs();
         opFilter.getSubOp().visit(this);
-        for (Expr expression : exprList) {
-            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
-                    .append(SolutionMapping.getIndice())
-                    .append(" = sm")
-                    .append(SolutionMapping.getIndice() - 1)
-                    .append("\n\t\t\t.filter(new Filter(serializableDictionary, \"")
-                    .append(FilterConvert.convert(expression))
-                    .append("\"));\n\n");
+        int subIndex = SolutionMapping.getIndice() - 1;
 
-            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice() - 1);
-            SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
+        ExprList exprs = opFilter.getExprs();
+        for (Expr expr : exprs) {
+            if (expr instanceof E_NotEquals) {
+                E_NotEquals ne = (E_NotEquals) expr;
+                Expr left = ne.getArg1();
+                Expr right = ne.getArg2();
+                if (left.isConstant() && left.getConstant().asNode().isURI() && right.isVariable()) {
+                    String uri = left.getConstant().asNode().getURI();
+                    String varName = right.getVarName();
+                    flinkProgram.append("\t\tlong ").append(varName).append("Id = hdt.getDictionary().stringToId(\"")
+                            .append(uri).append("\", TripleComponentRole.SUBJECT);\n");
+                    flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(SolutionMapping.getIndice())
+                            .append(" = sm").append(subIndex)
+                            .append("\n\t\t\t.filter(new Filter(serializableDictionary, \"?")
+                            .append(varName).append(" != ").append(varName).append("Id\"));\n\n");
+                }
+            } else {
+                String exprStr = expr.toString();
+                flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(SolutionMapping.getIndice())
+                        .append(" = sm").append(subIndex)
+                        .append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(exprStr).append("\"));\n\n");
+            }
+            subIndex = SolutionMapping.getIndice();
         }
     }
+
 
     public void visit(ExprList exprList) {
         for (Expr expression : exprList) {
