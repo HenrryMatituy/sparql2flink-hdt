@@ -172,7 +172,6 @@ public class SolutionMappingHDT implements Serializable {
             throw new IllegalArgumentException("La expresión de filtro no puede estar vacía.");
         }
 
-        // Extraer la variable y el valor de la expresión
         String[] parts = expression.replaceAll("[()]", "").split(" ");
         if (parts.length != 3) {
             throw new IllegalArgumentException("Formato de expresión no válido. Se esperaba: '(operador variable valor)'");

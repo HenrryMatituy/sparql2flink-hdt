@@ -16,13 +16,9 @@ sm9 creado
 Antes de obtener Product16 ID
 Product16 ID: 968
 Antes de aplicar filtro sm10
-Filtro sm10 aplicado (!=)
+Filtro sm10 aplicado (!= ?product primero)
 Antes de aplicar filtro sm10-inverse
-Filtro sm10-inverse aplicado (==)
-Antes de aplicar filtro sm10-alt1
-Filtro sm10-alt1 aplicado (?product !=)
-Antes de aplicar filtro sm10-alt2
-Filtro sm10-alt2 aplicado (<>)
-Antes de aplicar filtro sm10-alt3
-Filtro sm10-alt3 aplicado (!= sin espacio)
+Filtro sm10-inverse aplicado (== ?product primero)
+Antes de aplicar filtro sm10-alt
+Filtro sm10-alt aplicado (<> ?product primero)
 Ejecución completada
