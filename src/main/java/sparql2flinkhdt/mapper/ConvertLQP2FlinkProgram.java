@@ -26,20 +26,9 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         int startIndex = SolutionMapping.getIndice();
         int currentIndex = startIndex;
         Map<String, Integer> variableToIndex = new HashMap<>();
-        Set<Integer> usedIndices = new HashSet<>(); // Para evitar joins duplicados
+        Set<Integer> usedIndices = new HashSet<>();
 
-        // Filtrar solo los triples relevantes para la consulta
-        List<Triple> relevantTriples = new ArrayList<>();
         for (Triple triple : listTriplePatterns) {
-            String predicate = triple.getPredicate().toString();
-            if (!(triple.getSubject().toString().contains("Product16") &&
-                    (predicate.contains("productPropertyNumeric1") || predicate.contains("productPropertyNumeric2")))) {
-                relevantTriples.add(triple);
-            }
-        }
-
-        // Generar los triple patterns
-        for (Triple triple : relevantTriples) {
             String subjectFilter = triple.getSubject().isVariable() ? "null" : "\"" + triple.getSubject().toString() + "\"";
             String predicateFilter = triple.getPredicate().isVariable() ? "null" : "\"" + triple.getPredicate().toString() + "\"";
             String objectFilter = triple.getObject().isVariable() ? "null" : "\"" + triple.getObject().toString() + "\"";
@@ -77,52 +66,11 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
             currentIndex++;
         }
 
-        if (relevantTriples.size() > 1) {
+        if (listTriplePatterns.size() > 1) {
             int joinIndex = currentIndex;
-            int leftIndex = -1;
+            int leftIndex = startIndex;
 
-            // Encontrar el triple con Product16 como sujeto (sm2)
-            for (int i = startIndex; i < currentIndex; i++) {
-                Triple t = relevantTriples.get(i - startIndex);
-                if (!t.getSubject().isVariable() && t.getSubject().toString().contains("Product16")) {
-                    leftIndex = i;
-                    break;
-                }
-            }
-            if (leftIndex == -1) leftIndex = startIndex;
-
-            // Primer join: sm2 con sm3 por ?prodFeature
-            int featureIndex = -1;
-            for (int i = startIndex; i < currentIndex; i++) {
-                Triple t = relevantTriples.get(i - startIndex);
-                if (t.getPredicate().toString().equals("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productFeature") &&
-                        t.getSubject().isVariable()) {
-                    featureIndex = i;
-                    break;
-                }
-            }
-
-            if (featureIndex != -1 && leftIndex != featureIndex) {
-                ArrayList<String> keys = SolutionMapping.getKey(leftIndex, featureIndex);
-                String keyString = JoinKeys.keys(keys);
-
-                flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(joinIndex)
-                        .append(" = sm").append(leftIndex)
-                        .append(".join(sm").append(featureIndex).append(")\n")
-                        .append("\t\t\t.where(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
-                        .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
-                        .append("\t\t\t.with(new Join());\n\n");
-
-                SolutionMapping.join(joinIndex, leftIndex, featureIndex);
-                usedIndices.add(leftIndex);
-                usedIndices.add(featureIndex);
-                leftIndex = joinIndex;
-                joinIndex++;
-            }
-
-            // Unir los demás triples, evitando duplicados
-            for (int i = startIndex; i < currentIndex; i++) {
-                if (usedIndices.contains(i)) continue; // Saltar índices ya usados
+            for (int i = startIndex + 1; i < currentIndex; i++) {
                 int rightIndex = i;
                 ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
                 String keyString = JoinKeys.keys(keys);
@@ -150,20 +98,19 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
         opFilter.getSubOp().visit(this);
         int subIndex = SolutionMapping.getIndice() - 1;
 
-        // Declarar productId solo si es necesario
         boolean needsProductId = false;
         ExprList exprs = opFilter.getExprs();
         for (Expr expr : exprs) {
             if (expr instanceof E_NotEquals) {
                 E_NotEquals ne = (E_NotEquals) expr;
-                if (ne.getArg1().isConstant() || ne.getArg2().isConstant()) { // Corrección aquí
+                if (ne.getArg1().isConstant() || ne.getArg2().isConstant()) {
                     needsProductId = true;
                     break;
                 }
             }
         }
         if (needsProductId) {
-            flinkProgram.append("\t\tlong productId = hdt.getDictionary().stringToId(\"http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product16\", TripleComponentRole.SUBJECT);\n");
+            flinkProgram.append("\t\tlong productId = hdt.getDictionary().stringToId(\"http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product10\", TripleComponentRole.SUBJECT);\n");
         }
 
         flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(SolutionMapping.getIndice())
@@ -186,12 +133,16 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                     String exprStr = expr.toString();
                     flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(exprStr).append("\"))");
                 }
-            } else if (expr instanceof E_LogicalAnd) {
-                E_LogicalAnd and = (E_LogicalAnd) expr;
-                Expr left = and.getArg1();
-                Expr right = and.getArg2();
-                flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(left.toString()).append("\"))");
-                flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(right.toString()).append("\"))");
+            } else if (expr instanceof E_GreaterThanOrEqual) {
+                E_GreaterThanOrEqual ge = (E_GreaterThanOrEqual) expr;
+                Expr left = ge.getArg1();
+                Expr right = ge.getArg2();
+                if (left.isVariable() && right.isConstant()) {
+                    String varName = left.getVarName();
+                    String value = right.getConstant().toString().replace("\"", "").replace("^^<http://www.w3.org/2001/XMLSchema#dateTime>", "");
+                    flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"(>= ?").append(varName)
+                            .append(" \\\"").append(value).append("\\\")\"))");
+                }
             } else {
                 String exprStr = expr.toString();
                 flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(exprStr).append("\"))");
@@ -201,6 +152,54 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
         ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(subIndex);
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
+    }
+
+    @Override
+    public void visit(OpLeftJoin opLeftJoin) {
+        opLeftJoin.getLeft().visit(this);
+        int leftIndex = SolutionMapping.getIndice() - 1;
+        opLeftJoin.getRight().visit(this);
+        int rightIndex = SolutionMapping.getIndice() - 1;
+
+        ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
+        String keyString = JoinKeys.keys(keys);
+
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(SolutionMapping.getIndice())
+                .append(" = sm").append(leftIndex)
+                .append("\n\t\t\t.leftOuterJoin(sm").append(rightIndex).append(")\n")
+                .append("\t\t\t.where(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                .append("\t\t\t.with(new LeftJoin());\n\n");
+
+        int joinIndex = SolutionMapping.getIndice();
+        SolutionMapping.join(joinIndex, leftIndex, rightIndex);
+
+        ExprList exprs = opLeftJoin.getExprs();
+        if (exprs != null && !exprs.isEmpty()) {
+            // Procesar las expresiones directamente como filtros
+            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(SolutionMapping.getIndice())
+                    .append(" = sm").append(joinIndex);
+
+            for (Expr expr : exprs) {
+                if (expr instanceof E_GreaterThanOrEqual) {
+                    E_GreaterThanOrEqual ge = (E_GreaterThanOrEqual) expr;
+                    Expr left = ge.getArg1();
+                    Expr right = ge.getArg2();
+                    if (left.isVariable() && right.isConstant()) {
+                        String varName = left.getVarName();
+                        String value = right.getConstant().toString().replace("\"", "").replace("^^<http://www.w3.org/2001/XMLSchema#dateTime>", "");
+                        flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"(>= ?").append(varName)
+                                .append(" \\\"").append(value).append("\\\")\"))");
+                    }
+                } else {
+                    String exprStr = expr.toString();
+                    flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(exprStr).append("\"))");
+                }
+            }
+            flinkProgram.append(";\n\n");
+            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(joinIndex);
+            SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
+        }
     }
 
     @Override
@@ -223,55 +222,6 @@ public class ConvertLQP2FlinkProgram extends OpVisitorBase {
                 .append(" = sm").append(subIndex)
                 .append("\n\t\t\t.map(new Project(new String[]{").append(varsProject).append("}));\n\n");
 
-        SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
-    }
-
-    @Override
-    public void visit(OpDistinct opDistinct) {
-        opDistinct.getSubOp().visit(this);
-        int subIndex = SolutionMapping.getIndice() - 1;
-
-        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(subIndex);
-        String varsDistinct = String.join(", ", variables);
-
-        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
-                .append(SolutionMapping.getIndice())
-                .append(" = sm").append(subIndex)
-                .append("\n\t\t\t.distinct(new DistinctKeySelector(new String[]{").append(varsDistinct).append("}));\n\n");
-
-        SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
-    }
-
-    @Override
-    public void visit(OpOrder opOrder) {
-        opOrder.getSubOp().visit(this);
-        int subIndex = SolutionMapping.getIndice() - 1;
-
-        List<SortCondition> sortConditions = opOrder.getConditions();
-        String order = (sortConditions.get(0).getDirection() == -2) ? "Order.ASCENDING" : "Order.DESCENDING";
-        String varName = "\"?" + sortConditions.get(0).getExpression().getVarName() + "\"";
-
-        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
-                .append(SolutionMapping.getIndice())
-                .append(" = sm").append(subIndex)
-                .append("\n\t\t\t.sortPartition(new OrderKeySelector(serializableDictionary, ").append(varName)
-                .append("), ").append(order).append(").setParallelism(1);\n\n");
-
-        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(subIndex);
-        SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
-    }
-
-    @Override
-    public void visit(OpSlice opSlice) {
-        opSlice.getSubOp().visit(this);
-        int subIndex = SolutionMapping.getIndice() - 1;
-
-        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
-                .append(SolutionMapping.getIndice())
-                .append(" = sm").append(subIndex)
-                .append("\n\t\t\t.first(").append(opSlice.getLength()).append(");\n\n");
-
-        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(subIndex);
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
 

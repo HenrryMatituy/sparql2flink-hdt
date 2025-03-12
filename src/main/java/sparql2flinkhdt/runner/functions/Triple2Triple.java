@@ -7,10 +7,10 @@ import sparql2flinkhdt.runner.SerializableDictionary;
 
 public class Triple2Triple implements FilterFunction<TripleID> {
 
-    private SerializableDictionary dictionary;
-    private String subject;
-    private String predicate;
-    private String object;
+    private final SerializableDictionary dictionary;
+    private final String subject;
+    private final String predicate;
+    private final String object;
 
     public Triple2Triple(SerializableDictionary dictionary, String subject, String predicate, String object) {
         this.dictionary = dictionary;
@@ -40,7 +40,7 @@ public class Triple2Triple implements FilterFunction<TripleID> {
         if (subject != null) {
             expectedSubject = TripleIDConvert.stringToID(dictionary, subject, TripleComponentRole.SUBJECT);
             if (expectedSubject == null) {
-                System.out.println("Error: Sujeto no encontrado en el diccionario: " + subject);
+                System.out.println("Sujeto no presente en el diccionario: " + subject + " (no hay coincidencia)");
                 return false;
             }
             System.out.println("Sujeto esperado ID=" + expectedSubject + ", Sujeto actual ID=" + tSubject);
@@ -51,7 +51,7 @@ public class Triple2Triple implements FilterFunction<TripleID> {
         if (predicate != null) {
             expectedPredicate = TripleIDConvert.stringToID(dictionary, predicate, TripleComponentRole.PREDICATE);
             if (expectedPredicate == null) {
-                System.out.println("Error: Predicado no encontrado en el diccionario: " + predicate);
+                System.out.println("Predicado no presente en el diccionario: " + predicate + " (no hay coincidencia)");
                 return false;
             }
             System.out.println("Predicado esperado ID=" + expectedPredicate + ", Predicado actual ID=" + tPredicate);
@@ -62,7 +62,7 @@ public class Triple2Triple implements FilterFunction<TripleID> {
         if (object != null) {
             expectedObject = TripleIDConvert.stringToID(dictionary, object, TripleComponentRole.OBJECT);
             if (expectedObject == null) {
-                System.out.println("Error: Objeto no encontrado en el diccionario: " + object);
+                System.out.println("Objeto no presente en el diccionario: " + object + " (no hay coincidencia)");
                 return false;
             }
             System.out.println("Objeto esperado ID=" + expectedObject + ", Objeto actual ID=" + tObject);

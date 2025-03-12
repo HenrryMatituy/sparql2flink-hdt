@@ -1,22 +1,23 @@
-# Query 5: Find product that are similar to a given product
+# Query 8: Give me recent reviews in English for a specific product.
 
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX bsbm: <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/>
 PREFIX bsbm-inst-data: <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/>
+PREFIX bsbm: <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX rev: <http://purl.org/stuff/rev#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 
-SELECT DISTINCT ?product ?productLabel
+SELECT ?title ?text ?reviewDate ?reviewer ?reviewerName ?rating1 ?rating2 ?rating3 ?rating4
 WHERE {
-	?product rdfs:label ?productLabel . 	
-	FILTER (bsbm-inst-data:Product16 != ?product)
-	bsbm-inst-data:Product16 bsbm:productFeature ?prodFeature .
-	?product bsbm:productFeature ?prodFeature .
-	bsbm-inst-data:Product16 bsbm:productPropertyNumeric1 ?origProperty1 .
-	?product bsbm:productPropertyNumeric1 ?simProperty1 .  
-	FILTER (?simProperty1 < 1520 && ?simProperty1 > 120)
-	bsbm-inst-data:Product16 bsbm:productPropertyNumeric2 ?origProperty2 .
-	?product bsbm:productPropertyNumeric2 ?simProperty2 .
-	FILTER (?simProperty2 < 570 && ?simProperty2 > 170)
+	?review bsbm:reviewFor bsbm-inst-data:Product18 .
+	?review dc:title ?title .
+	?review rev:text ?text .
+	?review bsbm:reviewDate ?reviewDate .
+	?review rev:reviewer ?reviewer .
+	?reviewer foaf:name ?reviewerName .
+	OPTIONAL { ?review bsbm:rating1 ?rating1 . }
+	OPTIONAL { ?review bsbm:rating2 ?rating2 . }
+	OPTIONAL { ?review bsbm:rating3 ?rating3 . }
+	OPTIONAL { ?review bsbm:rating4 ?rating4 . }
 }
-ORDER BY ?productLabel
-LIMIT 5
+ORDER BY DESC(?reviewDate)
+LIMIT 20
