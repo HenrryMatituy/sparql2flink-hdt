@@ -30,6 +30,7 @@ public class LogicalQueryPlan2FlinkProgram {
                 .append("import org.apache.flink.core.fs.FileSystem;\n")
                 .append("import org.apache.jena.ext.xerces.impl.dv.xs.XSSimpleTypeDecl;\n")
                 .append("import org.apache.jena.graph.Node_Literal;\n")
+                .append("import org.rdfhdt.hdt.enums.TripleComponentRole;\n")
                 .append("import org.rdfhdt.hdt.hdt.HDT;\n")
                 .append("import org.rdfhdt.hdt.triples.IteratorTripleID;\n")
                 .append("import org.rdfhdt.hdt.triples.TripleID;\n")
