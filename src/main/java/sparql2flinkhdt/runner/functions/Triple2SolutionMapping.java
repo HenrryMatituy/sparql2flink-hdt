@@ -22,9 +22,6 @@ public class Triple2SolutionMapping implements MapFunction<TripleID, SolutionMap
     public SolutionMappingHDT map(TripleID t) {
         SolutionMappingHDT sm = new SolutionMappingHDT(serializableDictionary);
         try {
-            System.out.println("Entrando al método map de Triple2SolutionMapping");
-            System.out.println("TripleID recibido - Sujeto: " + t.getSubject() + ", Predicado: " + t.getPredicate() + ", Objeto: " + t.getObject());
-            System.out.println("Variables: Sujeto=" + var_s + ", Predicado=" + var_p + ", Objeto=" + var_o);
 
             if (var_s != null && var_p == null && var_o == null) {
                 System.out.println("Mapeando solo sujeto");

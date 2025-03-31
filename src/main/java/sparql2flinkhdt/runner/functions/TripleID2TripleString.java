@@ -25,9 +25,7 @@ public class TripleID2TripleString implements MapFunction<SolutionMappingHDT, So
             return null;
         }
 
-        System.out.println("Iniciando conversión de SolutionMappingHDT a SolutionMappingURI...");
-
-        SolutionMappingURI smURI = new SolutionMappingURI();
+              SolutionMappingURI smURI = new SolutionMappingURI();
         for (String var : sm.getMapping().keySet()) {
             MappingValue mappingValue = sm.getMapping().get(var);
 
@@ -47,7 +45,6 @@ public class TripleID2TripleString implements MapFunction<SolutionMappingHDT, So
             }
         }
 
-        System.out.println("Conversión completada para SolutionMappingURI: " + smURI);
-        return smURI;
+              return smURI;
     }
 }

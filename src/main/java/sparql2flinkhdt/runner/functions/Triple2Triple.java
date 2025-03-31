@@ -54,7 +54,7 @@ public class Triple2Triple implements FilterFunction<TripleID> {
                 System.out.println("Error: Predicado no encontrado en el diccionario: " + predicate);
                 return false;
             }
-            System.out.println("Predicado esperado ID=" + expectedPredicate + ", Predicado actual ID=" + tPredicate);
+
         }
 
         // Procesar objeto
@@ -65,7 +65,7 @@ public class Triple2Triple implements FilterFunction<TripleID> {
                 System.out.println("Error: Objeto no encontrado en el diccionario: " + object);
                 return false;
             }
-            System.out.println("Objeto esperado ID=" + expectedObject + ", Objeto actual ID=" + tObject);
+
         }
 
         // Realizar las comparaciones
@@ -74,7 +74,7 @@ public class Triple2Triple implements FilterFunction<TripleID> {
         boolean objectMatches = (object == null) || (tObject == expectedObject);
 
         // Depuración detallada
-        System.out.println("Comparación: Sujeto=" + subjectMatches + ", Predicado=" + predicateMatches + ", Objeto=" + objectMatches);
+
 
         // Resultado final del filtro
         return subjectMatches && predicateMatches && objectMatches;
