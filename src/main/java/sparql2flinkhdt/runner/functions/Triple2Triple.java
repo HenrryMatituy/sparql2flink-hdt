@@ -21,7 +21,6 @@ public class Triple2Triple implements FilterFunction<TripleID> {
 
     @Override
     public boolean filter(TripleID t) {
-        System.out.println("Entrando al método filter de Triple2Triple");
 
         // Obtener los IDs actuales del triple
         long tSubject = t.getSubject();
@@ -29,11 +28,11 @@ public class Triple2Triple implements FilterFunction<TripleID> {
         long tObject = t.getObject();
 
         // Convertir los IDs a URIs para fines de depuración
-        String uriSubject = TripleIDConvert.idToString(dictionary, tSubject, TripleComponentRole.SUBJECT);
-        String uriPredicate = TripleIDConvert.idToString(dictionary, tPredicate, TripleComponentRole.PREDICATE);
-        String uriObject = TripleIDConvert.idToString(dictionary, tObject, TripleComponentRole.OBJECT);
-
-        System.out.println("Triple actual: Sujeto=" + uriSubject + ", Predicado=" + uriPredicate + ", Objeto=" + uriObject);
+//        String uriSubject = TripleIDConvert.idToString(dictionary, tSubject, TripleComponentRole.SUBJECT);
+//        String uriPredicate = TripleIDConvert.idToString(dictionary, tPredicate, TripleComponentRole.PREDICATE);
+//        String uriObject = TripleIDConvert.idToString(dictionary, tObject, TripleComponentRole.OBJECT);
+//
+//        System.out.println("Triple actual: Sujeto=" + uriSubject + ", Predicado=" + uriPredicate + ", Objeto=" + uriObject);
 
         // Procesar sujeto
         Long expectedSubject = null;
