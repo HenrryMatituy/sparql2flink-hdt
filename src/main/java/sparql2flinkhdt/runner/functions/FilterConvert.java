@@ -1,47 +1,48 @@
 package sparql2flinkhdt.runner.functions;
 
 import org.apache.jena.sparql.expr.*;
-import org.rdfhdt.hdt.dictionary.Dictionary;
+import sparql2flinkhdt.runner.SerializableDictionary;
 import sparql2flinkhdt.runner.functions.filter.*;
+import sparql2flinkhdt.runner.functions.SolutionMappingHDT.MappingValue;
 
 import java.util.HashMap;
 
-//SolutionMapping - Filter Function
+// SolutionMapping - Filter Function
 public class FilterConvert {
 
-    public static boolean convert(Dictionary dictionary, E_Equals expression, HashMap<String, Integer[]> hm) {
-		return Equals.eval(dictionary, expression, hm);
+    public static boolean convert(SerializableDictionary dictionary, E_Equals expression, HashMap<String, MappingValue> hm) {
+        return Equals.eval(dictionary, expression, hm);
     }
 
-    public static boolean convert(Dictionary dictionary, E_NotEquals expression, HashMap<String, Integer[]> hm) {
-		return NotEquals.eval(dictionary, expression, hm);
+    public static boolean convert(SerializableDictionary dictionary, E_NotEquals expression, HashMap<String, MappingValue> hm) {
+        return NotEquals.eval(dictionary, expression, hm);
     }
 
-    public static boolean convert(Dictionary dictionary, E_GreaterThanOrEqual expression, HashMap<String, Integer[]> hm) {
-		return GreaterThanOrEqual.eval(dictionary, expression, hm);
+    public static boolean convert(SerializableDictionary dictionary, E_GreaterThanOrEqual expression, HashMap<String, MappingValue> hm) {
+        return GreaterThanOrEqual.eval(dictionary, expression, hm);
     }
 
-    public static boolean convert(Dictionary dictionary, E_LessThanOrEqual expression, HashMap<String, Integer[]> hm) {
-		return LessThanOrEqual.eval(dictionary, expression, hm);
+    public static boolean convert(SerializableDictionary dictionary, E_LessThanOrEqual expression, HashMap<String, MappingValue> hm) {
+        return LessThanOrEqual.eval(dictionary, expression, hm);
     }
 
-    public static boolean convert(Dictionary dictionary, E_GreaterThan expression, HashMap<String, Integer[]> hm) {
-		return GreaterThan.eval(dictionary, expression, hm);
+    public static boolean convert(SerializableDictionary dictionary, E_GreaterThan expression, HashMap<String, MappingValue> hm) {
+        return GreaterThan.eval(dictionary, expression, hm);
     }
 
-	public static boolean convert(Dictionary dictionary, E_LessThan expression, HashMap<String, Integer[]> hm) {
-		return LessThan.eval(dictionary, expression, hm);
-	}
+    public static boolean convert(SerializableDictionary dictionary, E_LessThan expression, HashMap<String, MappingValue> hm) {
+        return LessThan.eval(dictionary, expression, hm);
+    }
 
-    public static boolean convert(Dictionary dictionary, E_LogicalAnd expression, HashMap<String, Integer[]> hm) {
+    public static boolean convert(SerializableDictionary dictionary, E_LogicalAnd expression, HashMap<String, MappingValue> hm) {
         return (convert(dictionary, expression.getArg1(), hm) && convert(dictionary, expression.getArg2(), hm));
     }
 
-    public static boolean convert(Dictionary dictionary, E_LogicalOr expression, HashMap<String, Integer[]> hm) {
-		return (convert(dictionary, expression.getArg1(), hm) || convert(dictionary, expression.getArg2(), hm));
+    public static boolean convert(SerializableDictionary dictionary, E_LogicalOr expression, HashMap<String, MappingValue> hm) {
+        return (convert(dictionary, expression.getArg1(), hm) || convert(dictionary, expression.getArg2(), hm));
     }
 
-    public static boolean convert(Dictionary dictionary, Expr expression, HashMap<String, Integer[]> hm) {
+    public static boolean convert(SerializableDictionary dictionary, Expr expression, HashMap<String, MappingValue> hm) {
         if (expression instanceof E_Equals) return convert(dictionary, (E_Equals) expression, hm);
         if (expression instanceof E_NotEquals) return convert(dictionary, (E_NotEquals) expression, hm);
         if (expression instanceof E_LessThan) return convert(dictionary, (E_LessThan) expression, hm);

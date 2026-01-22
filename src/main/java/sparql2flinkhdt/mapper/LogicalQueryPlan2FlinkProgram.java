@@ -5,73 +5,75 @@ import java.nio.file.Path;
 
 public class LogicalQueryPlan2FlinkProgram {
 
-    private Op logicalQueryPlan;
-    private String className;
+    private final Op logicalQueryPlan;
+    private final String className;
 
-    public LogicalQueryPlan2FlinkProgram(Op logicalQueryPlan, Path path){
+    public LogicalQueryPlan2FlinkProgram(Op logicalQueryPlan, Path path) {
         this.logicalQueryPlan = logicalQueryPlan;
-        this.className = path.getFileName().toString();
-        this.className = this.className.substring(0, this.className.indexOf('.'));
-        this.className = this.className.toLowerCase();
-        this.className = this.className.substring(0, 1).toUpperCase() + this.className.substring(1, this.className.length());
+        this.className = capitalizeFirstLetter(path.getFileName().toString().split("\\.")[0]);
+    }
+
+    private String capitalizeFirstLetter(String text) {
+        return text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
     }
 
     public String logicalQueryPlan2FlinkProgram() {
-        String flinkProgram = "";
+        StringBuilder flinkProgram = new StringBuilder();
 
-        flinkProgram += "package sparql2flink.out;\n\n" +
-                "import org.apache.flink.api.java.DataSet;\n" +
-                "import org.apache.flink.api.common.operators.Order;\n" +
-                "import org.apache.flink.api.java.ExecutionEnvironment;\n" +
-                "import org.apache.flink.api.java.utils.ParameterTool;\n" +
-                "import org.apache.flink.core.fs.FileSystem;\n" +
-                "import org.apache.jena.graph.Node;\n" +
+        flinkProgram.append("package sparql2flinkhdt.out;\n\n")
+                .append("import com.esotericsoftware.kryo.serializers.JavaSerializer;\n")
+                .append("import org.apache.flink.api.common.functions.MapFunction;\n")
+                .append("import org.apache.flink.api.common.operators.Order;\n")
+                .append("import org.apache.flink.api.java.DataSet;\n")
+                .append("import org.apache.flink.api.java.ExecutionEnvironment;\n")
+                .append("import org.apache.flink.api.java.utils.ParameterTool;\n")
+                .append("import org.apache.flink.core.fs.FileSystem;\n")
+                .append("import org.apache.jena.ext.xerces.impl.dv.xs.XSSimpleTypeDecl;\n")
+                .append("import org.apache.jena.graph.Node_Literal;\n")
+                .append("import org.rdfhdt.hdt.enums.TripleComponentRole;\n")
+                .append("import org.rdfhdt.hdt.hdt.HDT;\n")
+                .append("import org.rdfhdt.hdt.triples.IteratorTripleID;\n")
+                .append("import org.rdfhdt.hdt.triples.TripleID;\n")
+                .append("import sparql2flinkhdt.runner.SerializableDictionary;\n")
+                .append("import sparql2flinkhdt.runner.LoadTriples;\n")
+                .append("import sparql2flinkhdt.runner.functions.*;\n")
+                .append("import java.util.ArrayList;\n\n")
+                .append("public class ").append(className).append(" {\n")
+                .append("\tpublic static void main(String[] args) throws Exception {\n\n")
+                .append("\t\tfinal ParameterTool params = ParameterTool.fromArgs(args);\n\n")
+                .append("\t\tif (!params.has(\"dataset\") || !params.has(\"output\")) {\n")
+                .append("\t\t\tSystem.out.println(\"Use --dataset and --output to specify paths.\");\n")
+                .append("\t\t\treturn;\n\t\t}\n\n")
+                .append("\t\t// ************ Initialize Environment and Load Data ************\n")
+                .append("\t\tfinal ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();\n")
+                .append("\t\tenv.getConfig().registerTypeWithKryoSerializer(Node_Literal.class, JavaSerializer.class);\n")
+                .append("\t\tenv.getConfig().registerTypeWithKryoSerializer(XSSimpleTypeDecl.class, JavaSerializer.class);\n\n")
+                .append("\t\tHDT hdt = LoadTriples.fromDataset(env, params.get(\"dataset\"));\n")
+                .append("\t\tSerializableDictionary serializableDictionary = new SerializableDictionary();\n")
+                .append("\t\tserializableDictionary.loadFromHDTDictionary(hdt.getDictionary());\n\n")
+                .append("\t\tArrayList<TripleID> listTripleID = new ArrayList<>();\n")
+                .append("\t\tIteratorTripleID iterator = hdt.getTriples().searchAll();\n")
+                .append("\t\twhile (iterator.hasNext()) {\n")
+                .append("\t\t\tTripleID tripleID = new TripleID(iterator.next());\n")
+                .append("\t\t\tlistTripleID.add(tripleID);\n")
+                .append("\t\t}\n\n")
+                .append("\t\tDataSet<TripleID> dataset = env.fromCollection(listTripleID);\n\n")
+                .append("\t\t// ************ Applying Transformations ************\n");
 
-                "import org.rdfhdt.hdt.hdt.HDT;\n" +
-                "import org.rdfhdt.hdt.triples.IteratorTripleID;\n" +
-                "import org.rdfhdt.hdt.triples.TripleID;\n" +
-
-                "import sparql2flinkhdt.runner.functions.*;\n" +
-                "import sparql2flinkhdt.runner.LoadTriples;\n" +
-                "import sparql2flinkhdt.runner.functions.order.*;\n" +
-                "import java.math.*;\n" +
-                "import java.util.ArrayList;\n" +
-
-                "\npublic class "+className+" {\n" +
-                "\tpublic static void main(String[] args) throws Exception {\n\n" +
-                "\t\tfinal ParameterTool params = ParameterTool.fromArgs(args);\n\n" +
-                "\t\tif (!params.has(\"dataset\") && !params.has(\"output\")) {\n" +
-                "\t\t\tSystem.out.println(\"Use --dataset to specify dataset path and use --output to specify output path.\");\n" +
-                "\t\t}\n\n" +
-                "\t\t//************ Environment (DataSet) and Source (static RDF dataset) ************\n" +
-                "\t\tfinal ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();\n" +
-                "\t\tHDT hdt = LoadTriples.fromDataset(env, params.get(\"dataset\"));\n\n" +
-
-                "\t\tArrayList<TripleID> listTripleID = new ArrayList<>();\n" +
-                "\t\tIteratorTripleID iterator = hdt.getTriples().searchAll();\n" +
-                "\t\twhile(iterator.hasNext()) {\n" +
-                "\t\t\tTripleID tripleID = new TripleID(iterator.next());\n" +
-                "\t\t\tlistTripleID.add(tripleID);\n" +
-                "\t\t}\n\n" +
-
-                "\t\tDataSet<TripleID> dataset = env.fromCollection(listTripleID);\n\n" +
-
-                "\t\t//************ Applying Transformations ************\n";
-
+        // Visit Logical Query Plan and append transformations to the program
         logicalQueryPlan.visit(new ConvertLQP2FlinkProgram());
+        flinkProgram.append(ConvertLQP2FlinkProgram.getFlinkProgram());
 
-        flinkProgram += ConvertLQP2FlinkProgram.getFlinkProgram();
+        // Add sink and execution
+        flinkProgram.append("\t\t// ************ Write Results ************\n")
+                .append("\t\tDataSet<SolutionMappingURI> sm").append(SolutionMapping.getIndice())
+                .append(" = sm").append(SolutionMapping.getIndice() - 1)
+                .append("\n\t\t\t.map(new TripleID2TripleString(serializableDictionary));\n\n")
+                .append("\t\tsm").append(SolutionMapping.getIndice())
+                .append(".writeAsText(params.get(\"output\") + \"").append(className).append("-Flink-Result\", FileSystem.WriteMode.OVERWRITE)\n")
+                .append("\t\t\t.setParallelism(1);\n\n")
+                .append("\t\tenv.execute(\"SPARQL Query to Flink Program - DataSet API\");\n\t}\n}");
 
-        flinkProgram += "\t\tDataSet<SolutionMappingURI> sm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t.map(new TripleID2TripleString(hdt.getDictionary()));\n\n";
-
-        flinkProgram += "\t\t//************ Sink  ************\n" +
-                "\t\tsm"+(SolutionMapping.getIndice()) +
-                ".writeAsText(params.get(\"output\")+\""+className+"-Flink-Result\", FileSystem.WriteMode.OVERWRITE)\n" +
-                "\t\t\t.setParallelism(1);\n\n" +
-                "\t\tenv.execute(\"SPARQL Query to Flink Programan - DataSet API\");\n" +
-                "\t}\n}";
-
-        return flinkProgram;
+        return flinkProgram.toString();
     }
 }

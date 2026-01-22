@@ -1,6 +1,7 @@
 package sparql2flinkhdt.runner.functions;
 
 import org.apache.flink.api.java.functions.KeySelector;
+import sparql2flinkhdt.runner.functions.SolutionMappingHDT.MappingValue;
 
 public class CoGroupKeySelector implements KeySelector<SolutionMappingHDT, String> {
 
@@ -12,15 +13,19 @@ public class CoGroupKeySelector implements KeySelector<SolutionMappingHDT, Strin
 
     @Override
     public String getKey(SolutionMappingHDT sm) {
-        String value = "";
-        int i=0;
+        StringBuilder valueBuilder = new StringBuilder();
+        int i = 0;
         for (String key : keys) {
-            value += sm.getMapping().get(key)[0];
-            if(++i < keys.length) {
-                value += ",";
+            MappingValue mappingValue = sm.getMapping().get(key);
+            if (mappingValue != null) {
+                valueBuilder.append(mappingValue.getId());
+            } else {
+                throw new IllegalArgumentException("No se encontró mapeo para la clave: " + key);
+            }
+            if (++i < keys.length) {
+                valueBuilder.append(",");
             }
         }
-        return value;
+        return valueBuilder.toString();
     }
-
 }

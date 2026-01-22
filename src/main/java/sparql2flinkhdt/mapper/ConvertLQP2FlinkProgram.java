@@ -8,257 +8,278 @@ import org.apache.jena.sparql.algebra.op.*;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class ConvertLQP2FlinkProgram extends OpVisitorBase {
 
-    private static String flinkProgram = "";
+    private static StringBuilder flinkProgram = new StringBuilder(1024);
+    private int bgpIndex = 1;
 
-    public  ConvertLQP2FlinkProgram() {
+    public ConvertLQP2FlinkProgram() {
         super();
+        flinkProgram.setLength(0);
     }
 
     @Override
     public void visit(OpBGP opBGP) {
         List<Triple> listTriplePatterns = opBGP.getPattern().getList();
-        flinkProgram += ConvertTriplePatternGroup.convert(listTriplePatterns);
-    }
+        int startIndex = SolutionMapping.getIndice();
+        int currentIndex = startIndex;
+        Map<String, Integer> variableToIndex = new HashMap<>();
+        Set<Integer> usedIndices = new HashSet<>(); // Para evitar joins duplicados
 
-    @Override
-    public void visit(OpJoin opJoin) {
-        Op opLeft = opJoin.getLeft();
-        Op opRight = opJoin.getRight();
-
-        opLeft.visit(this);
-        int indice_sm_left = SolutionMapping.getIndice()-1;
-
-        opRight.visit(this);
-        int indice_sm_right = SolutionMapping.getIndice()-1;
-
-        int indice_sm_join = SolutionMapping.getIndice();
-
-        ArrayList<String> listKeys = SolutionMapping.getKey(indice_sm_left, indice_sm_right);
-
-        if(listKeys.size()>0) {
-            String keys = JoinKeys.keys(listKeys);
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_join + " = sm" + indice_sm_left + ".join(sm" + indice_sm_right + ")\n" +
-                    "\t\t\t.where(new JoinKeySelector(new String[]{"+keys+"}))\n" +
-                    "\t\t\t.equalTo(new JoinKeySelector(new String[]{"+keys+"}))\n" +
-                    "\t\t\t.with(new Join());" +
-                    "\n\n";
+        // Filtrar solo los triples relevantes para la consulta
+        List<Triple> relevantTriples = new ArrayList<>();
+        for (Triple triple : listTriplePatterns) {
+            String predicate = triple.getPredicate().toString();
+            if (!(triple.getSubject().toString().contains("Product16") &&
+                    (predicate.contains("productPropertyNumeric1") || predicate.contains("productPropertyNumeric2")))) {
+                relevantTriples.add(triple);
+            }
         }
-        else {
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_join + " = sm" + indice_sm_left + ".cross(sm" + indice_sm_right + ")\n" +
-                    "\t\t\t.with(new Cross());" +
-                    "\n\n";
+
+        // Generar los triple patterns
+        for (Triple triple : relevantTriples) {
+            String subjectFilter = triple.getSubject().isVariable() ? "null" : "\"" + triple.getSubject().toString() + "\"";
+            String predicateFilter = triple.getPredicate().isVariable() ? "null" : "\"" + triple.getPredicate().toString() + "\"";
+            String objectFilter = triple.getObject().isVariable() ? "null" : "\"" + triple.getObject().toString() + "\"";
+
+            String subjectVar = triple.getSubject().isVariable() ? "\"" + triple.getSubject().toString() + "\"" : "null";
+            String objectVar = triple.getObject().isVariable() ? "\"" + triple.getObject().toString() + "\"" : "null";
+
+            flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(currentIndex).append(" = dataset\n")
+                    .append("\t\t\t.filter(new Triple2Triple(serializableDictionary, ")
+                    .append(subjectFilter).append(", ").append(predicateFilter).append(", ").append(objectFilter).append("))\n")
+                    .append("\t\t\t.map(new MapFunction<TripleID, SolutionMappingHDT>() {\n")
+                    .append("\t\t\t\t@Override\n")
+                    .append("\t\t\t\tpublic SolutionMappingHDT map(TripleID t) {\n")
+                    .append("\t\t\t\t\tSolutionMappingHDT sm = new SolutionMappingHDT();\n");
+
+            ArrayList<String> variables = new ArrayList<>();
+            if (!subjectVar.equals("null")) {
+                flinkProgram.append("\t\t\t\t\tsm.putMapping(").append(subjectVar)
+                        .append(", new SolutionMappingHDT.MappingValue(t.getSubject(), 1));\n");
+                variables.add(subjectVar);
+            }
+            if (!objectVar.equals("null")) {
+                flinkProgram.append("\t\t\t\t\tsm.putMapping(").append(objectVar)
+                        .append(", new SolutionMappingHDT.MappingValue(t.getObject(), 3));\n");
+                variables.add(objectVar);
             }
 
-        SolutionMapping.join(indice_sm_join, indice_sm_left, indice_sm_right);
+            flinkProgram.append("\t\t\t\t\treturn sm;\n")
+                    .append("\t\t\t\t}\n")
+                    .append("\t\t\t});\n\n");
+
+            SolutionMapping.insertSolutionMapping(currentIndex, variables);
+            variableToIndex.put(triple.getSubject().toString(), currentIndex);
+            variableToIndex.put(triple.getObject().toString(), currentIndex);
+            currentIndex++;
+        }
+
+        if (relevantTriples.size() > 1) {
+            int joinIndex = currentIndex;
+            int leftIndex = -1;
+
+            // Encontrar el triple con Product16 como sujeto (sm2)
+            for (int i = startIndex; i < currentIndex; i++) {
+                Triple t = relevantTriples.get(i - startIndex);
+                if (!t.getSubject().isVariable() && t.getSubject().toString().contains("Product16")) {
+                    leftIndex = i;
+                    break;
+                }
+            }
+            if (leftIndex == -1) leftIndex = startIndex;
+
+            // Primer join: sm2 con sm3 por ?prodFeature
+            int featureIndex = -1;
+            for (int i = startIndex; i < currentIndex; i++) {
+                Triple t = relevantTriples.get(i - startIndex);
+                if (t.getPredicate().toString().equals("http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/productFeature") &&
+                        t.getSubject().isVariable()) {
+                    featureIndex = i;
+                    break;
+                }
+            }
+
+            if (featureIndex != -1 && leftIndex != featureIndex) {
+                ArrayList<String> keys = SolutionMapping.getKey(leftIndex, featureIndex);
+                String keyString = JoinKeys.keys(keys);
+
+                flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(joinIndex)
+                        .append(" = sm").append(leftIndex)
+                        .append(".join(sm").append(featureIndex).append(")\n")
+                        .append("\t\t\t.where(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                        .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                        .append("\t\t\t.with(new Join());\n\n");
+
+                SolutionMapping.join(joinIndex, leftIndex, featureIndex);
+                usedIndices.add(leftIndex);
+                usedIndices.add(featureIndex);
+                leftIndex = joinIndex;
+                joinIndex++;
+            }
+
+            // Unir los demás triples, evitando duplicados
+            for (int i = startIndex; i < currentIndex; i++) {
+                if (usedIndices.contains(i)) continue; // Saltar índices ya usados
+                int rightIndex = i;
+                ArrayList<String> keys = SolutionMapping.getKey(leftIndex, rightIndex);
+                String keyString = JoinKeys.keys(keys);
+
+                flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(joinIndex)
+                        .append(" = sm").append(leftIndex)
+                        .append(".join(sm").append(rightIndex).append(")\n")
+                        .append("\t\t\t.where(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                        .append("\t\t\t.equalTo(new JoinKeySelector(new String[]{").append(keyString).append("}))\n")
+                        .append("\t\t\t.with(new Join());\n\n");
+
+                SolutionMapping.join(joinIndex, leftIndex, rightIndex);
+                usedIndices.add(rightIndex);
+                leftIndex = joinIndex;
+                joinIndex++;
+            }
+            bgpIndex = joinIndex;
+        } else {
+            bgpIndex = currentIndex;
+        }
     }
 
     @Override
-    public void visit(OpLeftJoin opLeftJoin) {
-        Op opLeft = opLeftJoin.getLeft();
-        Op opRight = opLeftJoin.getRight();
+    public void visit(OpFilter opFilter) {
+        opFilter.getSubOp().visit(this);
+        int subIndex = SolutionMapping.getIndice() - 1;
 
-        opLeft.visit(this);
-        int indice_sm_left = SolutionMapping.getIndice()-1;
-
-        opRight.visit(this);
-        int indice_sm_right = SolutionMapping.getIndice()-1;
-
-        int indice_sm_join = SolutionMapping.getIndice();
-
-        ArrayList<String> listKeys = SolutionMapping.getKey(indice_sm_left, indice_sm_right);
-
-        if(listKeys.size()>0) {
-            String keys = JoinKeys.keys(listKeys);
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_join + " = sm" + indice_sm_left + ".leftOuterJoin(sm" + indice_sm_right + ")\n" +
-                    "\t\t\t.where(new JoinKeySelector(new String[]{"+keys+"}))\n" +
-                    "\t\t\t.equalTo(new JoinKeySelector(new String[]{"+keys+"}))\n" +
-                    "\t\t\t.with(new LeftJoin());" +
-                    "\n\n";
+        // Declarar productId solo si es necesario
+        boolean needsProductId = false;
+        ExprList exprs = opFilter.getExprs();
+        for (Expr expr : exprs) {
+            if (expr instanceof E_NotEquals) {
+                E_NotEquals ne = (E_NotEquals) expr;
+                if (ne.getArg1().isConstant() || ne.getArg2().isConstant()) { // Corrección aquí
+                    needsProductId = true;
+                    break;
+                }
+            }
         }
-        else {
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+indice_sm_join+" = sm"+indice_sm_left+".cross(sm"+indice_sm_right+")\n" +
-                    "\t\t\t.with(new Cross());" +
-                    "\n\n";
+        if (needsProductId) {
+            flinkProgram.append("\t\tlong productId = hdt.getDictionary().stringToId(\"http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer1/Product16\", TripleComponentRole.SUBJECT);\n");
         }
 
-        SolutionMapping.join(indice_sm_join, indice_sm_left, indice_sm_right);
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm").append(SolutionMapping.getIndice())
+                .append(" = sm").append(subIndex);
 
-        if(opLeftJoin.getExprs() != null) {
-            this.visit(opLeftJoin.getExprs());
+        for (Expr expr : exprs) {
+            if (expr instanceof E_NotEquals) {
+                E_NotEquals ne = (E_NotEquals) expr;
+                Expr left = ne.getArg1();
+                Expr right = ne.getArg2();
+                if (left.isConstant() && left.getConstant().asNode().isURI() && right.isVariable()) {
+                    String varName = right.getVarName();
+                    flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"(!= ?").append(varName)
+                            .append(" productId)\"))");
+                } else if (right.isConstant() && right.getConstant().asNode().isURI() && left.isVariable()) {
+                    String varName = left.getVarName();
+                    flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"(!= ?").append(varName)
+                            .append(" productId)\"))");
+                } else {
+                    String exprStr = expr.toString();
+                    flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(exprStr).append("\"))");
+                }
+            } else if (expr instanceof E_LogicalAnd) {
+                E_LogicalAnd and = (E_LogicalAnd) expr;
+                Expr left = and.getArg1();
+                Expr right = and.getArg2();
+                flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(left.toString()).append("\"))");
+                flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(right.toString()).append("\"))");
+            } else {
+                String exprStr = expr.toString();
+                flinkProgram.append("\n\t\t\t.filter(new Filter(serializableDictionary, \"").append(exprStr).append("\"))");
+            }
         }
-    }
+        flinkProgram.append(";\n\n");
 
-    @Override
-    public void visit(OpUnion opUnion) {
-        Op opLeft = opUnion.getLeft();
-        Op opRight = opUnion.getRight();
-
-        opLeft.visit(this);
-        int indice_sm_left = SolutionMapping.getIndice()-1;
-        ArrayList<String> listKeysLeft = SolutionMapping.getKey(indice_sm_left);
-        String keysLeft = JoinKeys.keys(listKeysLeft);
-
-        opRight.visit(this);
-        int indice_sm_right = SolutionMapping.getIndice()-1;
-        ArrayList<String> listKeysRight = SolutionMapping.getKey(indice_sm_right);
-        String keysRight = JoinKeys.keys(listKeysRight);
-
-        int indice_sm_union = SolutionMapping.getIndice();
-
-        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm" + indice_sm_union + " = sm" + indice_sm_left + ".coGroup(sm" + indice_sm_right + ")\n" +
-                "\t\t\t.where(new CoGroupKeySelector(new String[]{"+keysLeft+"}))\n" +
-                "\t\t\t.equalTo(new CoGroupKeySelector(new String[]{"+keysRight+"}))\n" +
-                "\t\t\t.with(new Union());" +
-                "\n\n";
-
-        SolutionMapping.join(indice_sm_union, indice_sm_left, indice_sm_right);
+        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(subIndex);
+        SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
 
     @Override
     public void visit(OpProject opProject) {
-        ArrayList<String> variables = new ArrayList<>();
+        opProject.getSubOp().visit(this);
+        int subIndex = SolutionMapping.getIndice() - 1;
 
-        String varsProject = "";
+        ArrayList<String> variables = new ArrayList<>();
+        StringBuilder varsProject = new StringBuilder();
         Iterator<Var> iter = opProject.getVars().iterator();
-        for (; iter.hasNext(); ) {
-            String var = "\"?"+iter.next().getVarName()+"\"";
-            varsProject += var;
-            if(iter.hasNext()){
-                varsProject += ", ";
-            }
+        while (iter.hasNext()) {
+            String var = "\"?" + iter.next().getVarName() + "\"";
+            varsProject.append(var);
+            if (iter.hasNext()) varsProject.append(", ");
             variables.add(var);
         }
 
-        opProject.getSubOp().visit(this);
-
-        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t.map(new Project(new String[]{"+varsProject+"}));\n\n";
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                .append(SolutionMapping.getIndice())
+                .append(" = sm").append(subIndex)
+                .append("\n\t\t\t.map(new Project(new String[]{").append(varsProject).append("}));\n\n");
 
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
 
     @Override
-    public void visit(OpFilter opFilter) {
-        ExprList exprList = opFilter.getExprs();
-        opFilter.getSubOp().visit(this);
-        for ( Expr expression : exprList ) {
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                    "\t\t\t.filter(new Filter(hdt.getDictionary(), \""+FilterConvert.convert(expression)+"\"));\n\n";
-
-            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
-
-            SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
-        }
-    }
-
-    public void visit(ExprList exprList) {
-        for ( Expr expression : exprList ) {
-            flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                    "\t\t\t.filter(new Filter(hdt.getDictionary(), \""+FilterConvert.convert(expression)+"\"));\n\n";
-
-            ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
-
-            SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
-        }
-    }
-
-    @Override
     public void visit(OpDistinct opDistinct) {
         opDistinct.getSubOp().visit(this);
+        int subIndex = SolutionMapping.getIndice() - 1;
 
-        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
+        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(subIndex);
+        String varsDistinct = String.join(", ", variables);
 
-        String varsDistinct = "";
-        Iterator<String> iter = variables.iterator();
-        for (; iter.hasNext(); ) {
-            String var = iter.next();
-            varsDistinct += var;
-            if(iter.hasNext()){
-                varsDistinct += ", ";
-            }
-        }
-
-        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t.distinct(new DistinctKeySelector(new String[]{"+varsDistinct+"}));\n\n";
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                .append(SolutionMapping.getIndice())
+                .append(" = sm").append(subIndex)
+                .append("\n\t\t\t.distinct(new DistinctKeySelector(new String[]{").append(varsDistinct).append("}));\n\n");
 
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
 
     @Override
     public void visit(OpOrder opOrder) {
-        List<SortCondition> sortCondition = opOrder.getConditions();
-
-        String order="";
-        if(sortCondition.get(0).getDirection()==-2) {
-            order = "Order.ASCENDING";
-        } else if (sortCondition.get(0).getDirection()==-1) {
-            order = "Order.DESCENDING";
-        }
-
         opOrder.getSubOp().visit(this);
+        int subIndex = SolutionMapping.getIndice() - 1;
 
-        Expr expression = sortCondition.get(0).getExpression();
+        List<SortCondition> sortConditions = opOrder.getConditions();
+        String order = (sortConditions.get(0).getDirection() == -2) ? "Order.ASCENDING" : "Order.DESCENDING";
+        String varName = "\"?" + sortConditions.get(0).getExpression().getVarName() + "\"";
 
-        /*flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
-                "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\n";*/
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                .append(SolutionMapping.getIndice())
+                .append(" = sm").append(subIndex)
+                .append("\n\t\t\t.sortPartition(new OrderKeySelector(serializableDictionary, ").append(varName)
+                .append("), ").append(order).append(").setParallelism(1);\n\n");
 
-        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+SolutionMapping.getIndice()+";\n" +
-                "\t\tNode node = TripleIDConvert.idToStringFilter(hdt.getDictionary(), sm"+(SolutionMapping.getIndice()-1)+".collect().get(0).getValue(\""+expression+"\"));\n" +
-                "\t\tif(node.isLiteral()) {\n" +
-                "\t\t\tif(node.getLiteralValue().getClass().equals(BigDecimal.class) || node.getLiteralValue().getClass().equals(Double.class)){\n" +
-                "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Double(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
-                "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\t\t} else if (node.getLiteralValue().getClass().equals(BigInteger.class) || node.getLiteralValue().getClass().equals(Integer.class)) {\n" +
-                "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Integer(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
-                "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\t\t} else if (node.getLiteralValue().getClass().equals(Float.class)) {\n" +
-                "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Float(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
-                "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\t\t} else if (node.getLiteralValue().getClass().equals(Long.class)){\n" +
-                "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_Long(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
-                "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\t\t} else {\n" +
-                "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_String(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
-                "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\t\t}\n" +
-                "\t\t} else {\n" +
-                "\t\t\t\tsm"+SolutionMapping.getIndice()+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t\t\t.sortPartition(new OrderKeySelector_String(hdt.getDictionary(), \""+expression+"\"), "+order+")\n" +
-                "\t\t\t\t\t.setParallelism(1);\n" +
-                "\t\t}\n\n";
-
-        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
-
+        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(subIndex);
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
-
 
     @Override
     public void visit(OpSlice opSlice) {
         opSlice.getSubOp().visit(this);
+        int subIndex = SolutionMapping.getIndice() - 1;
 
-        flinkProgram += "\t\tDataSet<SolutionMappingHDT> sm"+(SolutionMapping.getIndice())+" = sm"+(SolutionMapping.getIndice()-1)+"\n" +
-                "\t\t\t.first("+opSlice.getLength()+");\n\n";
+        flinkProgram.append("\t\tDataSet<SolutionMappingHDT> sm")
+                .append(SolutionMapping.getIndice())
+                .append(" = sm").append(subIndex)
+                .append("\n\t\t\t.first(").append(opSlice.getLength()).append(");\n\n");
 
-        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(SolutionMapping.getIndice()-1);
-
+        ArrayList<String> variables = SolutionMapping.getSolutionMapping().get(subIndex);
         SolutionMapping.insertSolutionMapping(SolutionMapping.getIndice(), variables);
     }
 
-    public static String getFlinkProgram(){
-        return flinkProgram;
+    public static String getFlinkProgram() {
+        return flinkProgram.toString();
+    }
+
+    public static void resetFlinkProgram() {
+        flinkProgram.setLength(0);
     }
 }

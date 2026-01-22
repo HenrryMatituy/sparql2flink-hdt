@@ -1,6 +1,4 @@
 .idea
 **/target/
-**/out/
 *.log
-/examples/Query-Flink-Result
 *.class

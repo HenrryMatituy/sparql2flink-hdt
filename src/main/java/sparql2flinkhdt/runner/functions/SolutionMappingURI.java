@@ -14,16 +14,16 @@ public class SolutionMappingURI {
 		this.mapping = sm;
 	}
 
-    public void setMapping(HashMap<String, Node> mapping){
-        this.mapping = mapping;
-    }
+	public void setMapping(HashMap<String, Node> mapping){
+		this.mapping = mapping;
+	}
 
 	public HashMap<String, Node> getMapping(){
 		return mapping;
 	}
 
 	public void putMapping(String var, Node val) {
-        mapping.put(var, val);
+		mapping.put(var, val);
 	}
 
 	public Node getValue(String var){
@@ -34,9 +34,9 @@ public class SolutionMappingURI {
 	public String toString() {
 		String sm="";
 		for (Map.Entry<String, Node> hm : mapping.entrySet()) {
-		    if(hm.getValue() != null) {
-                sm += hm.getKey() + "-->" + hm.getValue().toString() + "\t";
-            }
+			if(hm.getValue() != null) {
+				sm += hm.getKey() + "-->" + hm.getValue().toString() + "\t";
+			}
 		}
 		return sm;
 	}

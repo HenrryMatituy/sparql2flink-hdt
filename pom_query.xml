@@ -1,21 +1,3 @@
-<!--
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed on an
-"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, either express or implied.  See the License for the
-specific language governing permissions and limitations
-under the License.
--->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -30,13 +12,14 @@ under the License.
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.15.0</flink.version>  <!--	Se actualizó de la versión 1.10.0 a 1.14.3	-->
-        <target.java.version>1.8</target.java.version>
-        <scala.binary.version>2.12</scala.binary.version> <!--	Se actualizó de version 2.11 a 2.12-->
+        <flink.version>1.15.0</flink.version>
+        <target.java.version>11</target.java.version>
+        <scala.binary.version>2.12</scala.binary.version>
         <maven.compiler.source>${target.java.version}</maven.compiler.source>
         <maven.compiler.target>${target.java.version}</maven.compiler.target>
         <log4j.version>2.17.1</log4j.version>
-        <jena.version>3.6.0</jena.version> <!--	Se actualizó de version 3.6.0 a 3.9.0-->
+        <jena.version>4.0.0</jena.version>
+        <hdt.version>3.0.10</hdt.version>
     </properties>
 
     <repositories>
@@ -53,67 +36,80 @@ under the License.
         </repository>
     </repositories>
 
-
     <dependencies>
 
         <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-scala_2.12</artifactId>
-            <version>${flink.version}</version>
-            <scope>provided</scope>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>5.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>de.javakaffee</groupId>
+            <artifactId>kryo-serializers</artifactId>
+            <version>0.45</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.12.8</version>
         </dependency>
 
 
+
+        <dependency>
+            <groupId>org.rdfhdt</groupId>
+            <artifactId>hdt-java-core</artifactId>
+            <version>${hdt.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.rdfhdt</groupId>
+            <artifactId>hdt-api</artifactId>
+            <version>${hdt.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-java</artifactId>
             <version>${flink.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-clients</artifactId>
             <version>${flink.version}</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-core</artifactId>
+            <version>${jena.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-arq</artifactId>
             <version>${jena.version}</version>
-            <scope>compile</scope>
         </dependency>
 
+        <!--        Nueva-->
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>apache-jena-libs</artifactId>
+            <version>${jena.version}</version>
+            <type>pom</type>
+        </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core -->
+        <!--Fin nueva-->
+
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-core</artifactId>
-            <version>1.12.130</version>           <!--Se actualizó de la versión 1.11.449 a la 1.12.130-->
+            <version>1.12.130</version>
         </dependency>
-        <!-- HDT Java Core -->
         <dependency>
-            <groupId>org.rdfhdt</groupId>
-            <artifactId>hdt-java-core</artifactId>
-            <version>1.1</version>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.12.1</version>
         </dependency>
-
-
-
-
-        <!-- Add connector dependencies here. They must be in the default scope (compile). -->
-
-        <!-- Example:
-
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-connector-kafka-0.10_${scala.binary.version}</artifactId>
-            <version>${flink.version}</version>
-        </dependency>
-        -->
-
-        <!-- Add logging framework, to produce console output when running in the IDE. -->
-        <!-- These dependencies are excluded from the application JAR by default. -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
@@ -132,135 +128,186 @@ under the License.
             <version>${log4j.version}</version>
             <scope>runtime</scope>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/xerces/xercesImpl -->
-        <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-            <version>2.6.0</version>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-
-            <!-- Java Compiler -->
+            <!-- Compiler Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.8.1</version>
                 <configuration>
-                    <!--<source>${java.version}</source> Este error me sacó canas
-                    <target>${java.version}</target>-->
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${target.java.version}</source>
+                    <target>${target.java.version}</target>
                 </configuration>
             </plugin>
-
-            <!-- We use the maven-shade plugin to create a fat jar that contains all necessary dependencies. -->
-            <!-- Change the value of <mainClass>...</mainClass> if your program entry point changes. -->
+            <!-- Assembly Plugin to include dependencies in the JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.4.1</version>
                 <executions>
-                    <!-- Run shade goal on package phase -->
                     <execution>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.apache.flink:force-shading</exclude>
-                                    <exclude>com.google.code.findbugs:jsr305</exclude>
-                                    <!-- <exclude>org.slf4j:*</exclude> -->
-                                    <!-- <exclude>log4j:*</exclude> -->
-                                </excludes>
-                            </artifactSet>
-                            <filters>
-                                <filter>
-                                    <!-- Do not copy the signatures in the META-INF folder.
-                                    Otherwise, this might cause SecurityExceptions when using the JAR. -->
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
+                                <!-- Incluye el manifest para definir la clase principal -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>sparql2flink.out.Query</mainClass>
+                                    <mainClass>sparql2flinkhdt.out.Query</mainClass>
                                 </transformer>
+                                <!-- Merge los archivos META-INF/services (opcional) -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+
         </plugins>
-
-        <pluginManagement>
-            <plugins>
-
-                <!-- This improves the out-of-the-box experience in Eclipse by resolving some warnings. -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-shade-plugin</artifactId>
-                                        <versionRange>[3.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>shade</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore/>
-                                    </action>
-                                </pluginExecution>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-compiler-plugin</artifactId>
-                                        <versionRange>[3.1,)</versionRange>
-                                        <goals>
-                                            <goal>testCompile</goal>
-                                            <goal>compile</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore/>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
-    <!-- This profile helps to make things run out of the box in IntelliJ -->
-    <!-- Its adds Flink's core classes to the runtime class path. -->
-    <!-- Otherwise they are missing in IntelliJ, because the dependency is 'provided' -->
+
+
+
+    <!--    <build>-->
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                <version>3.8.1</version>-->
+<!--                <configuration>-->
+<!--                    <source>${target.java.version}</source>-->
+<!--                    <target>${target.java.version}</target>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+
+<!--            &lt;!&ndash; Maven Shade Plugin &ndash;&gt;-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-shade-plugin</artifactId>-->
+<!--                <version>3.2.4</version>-->
+<!--                <executions>-->
+<!--                    &lt;!&ndash; Run shade goal on package phase &ndash;&gt;-->
+<!--                    <execution>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>shade</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <artifactSet>-->
+<!--                                <excludes>-->
+<!--                                    <exclude>org.apache.flink:force-shading</exclude>-->
+<!--                                    <exclude>com.google.code.findbugs:jsr305</exclude>-->
+<!--                                </excludes>-->
+<!--                            </artifactSet>-->
+<!--                            <filters>-->
+<!--                                <filter>-->
+<!--                                    &lt;!&ndash; Do not copy the signatures in the META-INF folder. &ndash;&gt;-->
+<!--                                    &lt;!&ndash; Otherwise, this might cause SecurityExceptions when using the JAR. &ndash;&gt;-->
+<!--                                    <artifact>*:*</artifact>-->
+<!--                                    <excludes>-->
+<!--                                        <exclude>META-INF/*.SF</exclude>-->
+<!--                                        <exclude>META-INF/*.DSA</exclude>-->
+<!--                                        <exclude>META-INF/*.RSA</exclude>-->
+<!--                                    </excludes>-->
+<!--                                </filter>-->
+<!--                            </filters>-->
+<!--                            <transformers>-->
+<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
+<!--                                    <mainClass>sparql2flinkhdt.out.Query</mainClass>-->
+<!--                                </transformer>-->
+<!--                            </transformers>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+
+<!--&lt;!&ndash;            <plugin>&ndash;&gt;-->
+<!--&lt;!&ndash;                <groupId>org.apache.maven.plugins</groupId>&ndash;&gt;-->
+<!--&lt;!&ndash;                <artifactId>maven-assembly-plugin</artifactId>&ndash;&gt;-->
+<!--&lt;!&ndash;                <version>3.3.0</version>&ndash;&gt;-->
+<!--&lt;!&ndash;                <configuration>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <archive>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <manifest>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <mainClass>sparql2flinkhdt.out.Query</mainClass>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </manifest>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </archive>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <descriptorRefs>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <descriptorRef>jar-with-dependencies</descriptorRef>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </descriptorRefs>&ndash;&gt;-->
+<!--&lt;!&ndash;                </configuration>&ndash;&gt;-->
+<!--&lt;!&ndash;                <executions>&ndash;&gt;-->
+<!--&lt;!&ndash;                    <execution>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <id>make-assembly</id>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <phase>package</phase>&ndash;&gt;-->
+<!--&lt;!&ndash;                        <goals>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <goal>single</goal>&ndash;&gt;-->
+<!--&lt;!&ndash;                        </goals>&ndash;&gt;-->
+<!--&lt;!&ndash;                    </execution>&ndash;&gt;-->
+<!--&lt;!&ndash;                </executions>&ndash;&gt;-->
+<!--&lt;!&ndash;            </plugin>&ndash;&gt;-->
+
+
+<!--        </plugins>-->
+
+<!--        <pluginManagement>-->
+<!--            <plugins>-->
+<!--                <plugin>-->
+<!--                    <groupId>org.eclipse.m2e</groupId>-->
+<!--                    <artifactId>lifecycle-mapping</artifactId>-->
+<!--                    <version>1.0.0</version>-->
+<!--                    <configuration>-->
+<!--                        <lifecycleMappingMetadata>-->
+<!--                            <pluginExecutions>-->
+<!--                                <pluginExecution>-->
+<!--                                    <pluginExecutionFilter>-->
+<!--                                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                                        <artifactId>maven-shade-plugin</artifactId>-->
+<!--                                        <versionRange>[3.2.4,)</versionRange>-->
+<!--                                        <goals>-->
+<!--                                            <goal>shade</goal>-->
+<!--                                        </goals>-->
+<!--                                    </pluginExecutionFilter>-->
+<!--                                    <action>-->
+<!--                                        <ignore/>-->
+<!--                                    </action>-->
+<!--                                </pluginExecution>-->
+<!--                                <pluginExecution>-->
+<!--                                    <pluginExecutionFilter>-->
+<!--                                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                                        <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                                        <versionRange>[3.8.1,)</versionRange>-->
+<!--                                        <goals>-->
+<!--                                            <goal>testCompile</goal>-->
+<!--                                            <goal>compile</goal>-->
+<!--                                        </goals>-->
+<!--                                    </pluginExecutionFilter>-->
+<!--                                    <action>-->
+<!--                                        <ignore/>-->
+<!--                                    </action>-->
+<!--                                </pluginExecution>-->
+<!--                            </pluginExecutions>-->
+<!--                        </lifecycleMappingMetadata>-->
+<!--                    </configuration>-->
+<!--                </plugin>-->
+<!--            </plugins>-->
+<!--        </pluginManagement>-->
+<!--    </build>-->
+
     <profiles>
         <profile>
             <id>add-dependencies-for-IDEA</id>
-
             <activation>
                 <property>
                     <name>idea.version</name>
                 </property>
             </activation>
-
             <dependencies>
                 <dependency>
                     <groupId>org.apache.flink</groupId>
@@ -268,14 +315,7 @@ under the License.
                     <version>${flink.version}</version>
                     <scope>compile</scope>
                 </dependency>
-                <!--<dependency>
-                    <groupId>org.apache.flink</groupId>
-                    <artifactId>flink-streaming-java</artifactId>
-                    <version>${flink.version}</version>
-                    <scope>provided</scope>
-                </dependency>-->
             </dependencies>
         </profile>
     </profiles>
-
 </project>

@@ -2,34 +2,36 @@ package sparql2flinkhdt.runner;
 
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.util.Preconditions;
+import org.apache.thrift.TSerializable;
 import org.rdfhdt.hdt.enums.RDFNotation;
 import org.rdfhdt.hdt.hdt.HDT;
 import org.rdfhdt.hdt.hdt.HDTManager;
 import org.rdfhdt.hdt.options.HDTSpecification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 
-public class LoadTriples {
-	public static HDT fromDataset(ExecutionEnvironment environment, String filePath) {
-	    Preconditions.checkNotNull(filePath, "The file path may not be null...");
+public class LoadTriples implements Serializable {
+    private static final Logger LOG = LoggerFactory.getLogger(LoadTriples.class);
+    public static HDT fromDataset(ExecutionEnvironment environment, String filePath) {
+        Preconditions.checkNotNull(filePath, "The file path may not be null...");
         HDT hdt = null;
 
         try {
-            hdt = HDTManager.generateHDT(filePath, "", RDFNotation.parse("ntriples"), new HDTSpecification(),null);
+            LOG.info("Intentando generar HDT desde el archivo: {}", filePath);
+            hdt = HDTManager.generateHDT(filePath, "http://example.org/baseURI", RDFNotation.parse("ntriples"), new HDTSpecification(), null);
+            LOG.info("Generación de HDT exitosa.");
 
-//            HDT hdt1 = HDTManager.generateHDT(
-//                    rdfInput,         // Input RDF File
-//                    baseURI,          // Base URI
-//                    RDFNotation.parse(inputType), // Input Type
-//                    new HDTSpecification(),   // HDT Options
-//                    null              // Progress Listener
+        } catch (Exception e) {
+            LOG.error("Error al generar HDT desde el archivo: {}", filePath, e);
+        }
 
-
-
-
-        }catch (Exception e){
-
+        if (hdt == null) {
+            throw new RuntimeException("Error: no se pudo generar HDT desde el archivo: " + filePath);
         }
         return hdt;
-	}
+    }
+
 }
 
