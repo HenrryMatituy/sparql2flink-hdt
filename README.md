@@ -54,3 +54,13 @@ Entre los componentes incorporados o adaptados se encuentran:
 - Apache Jena 4.0.0
 - HDT Java
 
+## Referencias
+1. O. Ceballos et al., SPARQL2Flink: Evaluation of SPARQL Queries on Apache Flink.
+
+2. O. Ceballos, SPARQL2Flink Library.
+
+3. J. D. Fernández et al., Binary RDF Representation for Publication and Exchange (HDT).
+
+4. J. M. Giménez, J. D. Fernández y M. A. Martínez-Prieto,
+   A MapReduce-Based Approach to Scale Big Semantic Data Compression with HDT.
+
