@@ -54,7 +54,3 @@ Entre los componentes incorporados o adaptados se encuentran:
 - Apache Jena 4.0.0
 - HDT Java
 
-## Compilación
-
-```bash
-mvn clean package
